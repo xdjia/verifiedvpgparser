@@ -1,0 +1,334 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>PreTimed</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library PreTimed</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+This file provides the monadic functions <span class="inlinecode"><span class="id" title="var">goEps'</span></span> and <span class="inlinecode"><span class="id" title="var">nodup'</span></span>, each
+  function attached with its time complexity, with the assumption that
+  some basic operations cost only one time unit. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Lists.List</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">ListNotations</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Unicode.Utf8_core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Lia</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Misc</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.Basic</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.vpg</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Def</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Dbx</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Program</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Monad</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">MonadicUtils</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">PreTimed</span>(<span class="id" title="var">G</span>:<span class="id" title="var">VPG</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">Dbx</span> := <span class="id" title="var">DBX</span>(<span class="id" title="var">G</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Include</span> <span class="id" title="var">Dbx.BackwardSmallStep.ForwardSmallStep.Def</span>.<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">cost_endE</span></span>: taking the last nonterminal from a rule is a basic
+    operation. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_endE</span> := 1.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">cost_beginE</span></span>: taking the first nonterminal from a rule is a basic
+    operation. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_beginE</span> := 1.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">cons_snd</span></span>: taking the second element from a tuple is a basic
+    operation. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cons_snd</span> := 1.<br/>
+
+<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">ff'</span> <span class="id" title="var">e</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>)<br/>
+&nbsp;&nbsp;: {! <span class="id" title="var">y</span> !:! <span class="id" title="var">bool</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_ff</span> <span class="id" title="var">e</span> <span class="id" title="var">r</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;∧ <span class="id" title="var">y</span> = <span class="id" title="var">ff</span> <span class="id" title="var">e</span> <span class="id" title="var">r</span> !}<br/>
+&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">as</span> <span class="id" title="var">x'</span> <span class="id" title="keyword">return</span> <span class="id" title="var">r</span> = <span class="id" title="var">x'</span> → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">bool</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_ff</span> <span class="id" title="var">e</span> <span class="id" title="var">r</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∧ <span class="id" title="var">y</span> = <span class="id" title="var">ff</span> <span class="id" title="var">e</span> <span class="id" title="var">r</span> !} <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">L1</span>, <span class="id" title="var">Alt_Epsilon</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">end_of_e</span> &lt;- <span class="id" title="var">_endE</span> <span class="id" title="var">e</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_ff_branch1</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">eqvv'</span> <span class="id" title="var">end_of_e</span> <span class="id" title="var">L1</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">out</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(+= <span class="id" title="var">cost_ff_branch2</span>; &lt;== <span class="id" title="var">false</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">r</span>).<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">cost_goEps</span></span>: the cost of the function <span class="inlinecode"><span class="id" title="var">goEps</span></span> 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_goEps</span> (<span class="id" title="var">P</span>:<span class="id" title="var">rules</span>) <span class="id" title="var">e</span> : <span class="id" title="var">nat</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_existb</span> <span class="id" title="var">_</span> (<span class="id" title="var">cost_ff</span> <span class="id" title="var">e</span>) <span class="id" title="var">P</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_endE</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_orb</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_existb_branch1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_existb_branch2</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">cost_goEps</span></span>: the cost of the function <span class="inlinecode"><span class="id" title="var">goEps</span></span> is O(|P|) 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">bound_cost_goEps</span>: ∃ <span class="id" title="var">k</span> <span class="id" title="var">b</span>, ∀ <span class="id" title="var">P</span> <span class="id" title="var">e</span>, <span class="id" title="var">cost_goEps</span> <span class="id" title="var">P</span> <span class="id" title="var">e</span> ≤ <span class="id" title="var">k</span> × |<span class="id" title="var">P</span>| + <span class="id" title="var">b</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">goEps</span></span>: checks if the rule <span class="inlinecode"><span class="id" title="var">e</span></span> can terminate. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">goEps</span> <span class="id" title="var">e</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">List.existsb</span> (<span class="id" title="var">ff</span> <span class="id" title="var">e</span>) <span class="id" title="var">P</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">goEps'</span></span>: the monadic version of <span class="inlinecode"><span class="id" title="var">goEps</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">goEps'</span> <span class="id" title="var">e</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;: {! <span class="id" title="var">y</span> !:! <span class="id" title="var">bool</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_goEps</span> <span class="id" title="var">P</span> <span class="id" title="var">e</span> ∧ <span class="id" title="var">y</span> = <span class="id" title="var">goEps</span> <span class="id" title="var">e</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">existsb'</span> (<span class="id" title="var">ff'</span> <span class="id" title="var">e</span>) <span class="id" title="var">P</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">PreTimed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">nodup</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">time_nodup_branch0</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">time_nodup_branch1</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">time_nodup_branch2</span> := 1.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">time_nodup_branch0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">time_nodup_branch1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">time_nodup_branch2</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">cost_nodup</span></span>: the cost of the function <span class="inlinecode"><span class="id" title="var">nodup</span></span> 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">cost_nodup</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">inlist</span>:<span class="id" title="var">A</span>→<span class="id" title="var">list</span> <span class="id" title="var">A</span>→<span class="id" title="var">bool</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_inlist</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">l</span>:<span class="id" title="var">list</span> <span class="id" title="var">A</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> ⇒ <span class="id" title="var">time_nodup_branch0</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span>::<span class="id" title="var">xs</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_inlist</span> <span class="id" title="var">x</span> <span class="id" title="var">xs</span> +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">inlist</span> <span class="id" title="var">x</span> <span class="id" title="var">xs</span> <span class="id" title="keyword">then</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">time_nodup_branch1</span> + <span class="id" title="var">cost_nodup</span> <span class="id" title="var">inlist</span> <span class="id" title="var">cost_inlist</span> <span class="id" title="var">xs</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">time_nodup_branch2</span> + <span class="id" title="var">cons_ct</span> + (<span class="id" title="var">cost_nodup</span> <span class="id" title="var">inlist</span> <span class="id" title="var">cost_inlist</span> <span class="id" title="var">xs</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">cost_nodup</span></span>: the cost of the function <span class="inlinecode"><span class="id" title="var">nodup</span></span> is O(|l|), where
+      <span class="inlinecode"><span class="id" title="var">l</span></span> is the list to remove duplicates. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">bound_cost_nodup</span>: <span class="id" title="keyword">∀</span> <span class="id" title="var">inlist</span> <span class="id" title="var">cost_inlist</span> <span class="id" title="var">ln</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">∀</span> <span class="id" title="var">a</span> <span class="id" title="var">l</span>, <span class="id" title="var">cost_inlist</span> <span class="id" title="var">a</span> <span class="id" title="var">l</span> ≤ <span class="id" title="var">ln</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">∃</span> <span class="id" title="var">k</span> <span class="id" title="var">b</span>, <span class="id" title="keyword">∀</span> <span class="id" title="var">l</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_nodup</span> <span class="id" title="var">inlist</span> <span class="id" title="var">cost_inlist</span> <span class="id" title="var">l</span> ≤ <span class="id" title="var">k</span> × (<span class="id" title="var">length</span> <span class="id" title="var">l</span>)+<span class="id" title="var">b</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_in_dec_branch1</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_in_dec_branch2</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_in_dec_branch3</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_in_dec_branch4</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_in_dec_branch1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_in_dec_branch2</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_in_dec_branch3</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_in_dec_branch4</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cons_ct</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">nodup</span></span>: removes the duplicates in a list. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">nodup</span> (<span class="id" title="var">inlist</span>:<span class="id" title="var">A</span>→<span class="id" title="var">list</span> <span class="id" title="var">A</span>→<span class="id" title="var">bool</span>) (<span class="id" title="var">l</span>:<span class="id" title="var">list</span> <span class="id" title="var">A</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> ⇒ <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span>::<span class="id" title="var">xs</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">inlist</span> <span class="id" title="var">x</span> <span class="id" title="var">xs</span> <span class="id" title="keyword">then</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">nodup</span> <span class="id" title="var">inlist</span> <span class="id" title="var">xs</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">out1</span> := <span class="id" title="var">nodup</span> <span class="id" title="var">inlist</span> <span class="id" title="var">xs</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">out2</span> := <span class="id" title="var">x</span>::<span class="id" title="var">out1</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">bound_nodup</span></span>: the list shrinks with duplicates removed. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">bound_nodup</span>: <span class="id" title="keyword">∀</span> <span class="id" title="var">cost_inlist</span> (<span class="id" title="var">l</span>:<span class="id" title="var">list</span> <span class="id" title="var">A</span>), <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">length</span> (<span class="id" title="var">nodup</span> <span class="id" title="var">cost_inlist</span> <span class="id" title="var">l</span>)) ≤ (<span class="id" title="var">length</span> <span class="id" title="var">l</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">nodup'</span></span>: the monadic version of <span class="inlinecode"><span class="id" title="var">nodup</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Program Fixpoint</span> <span class="id" title="var">nodup'</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{<span class="id" title="var">inlist</span>}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{<span class="id" title="var">cost_inlist</span>}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">inlist'</span>:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">a</span> <span class="id" title="var">l</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">bool</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_inlist</span> <span class="id" title="var">a</span> <span class="id" title="var">l</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">inlist</span> <span class="id" title="var">a</span> <span class="id" title="var">l</span> !})<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">l</span> <br/>
+&nbsp;&nbsp;: {! <span class="id" title="var">y</span> !:! <span class="id" title="var">list</span> <span class="id" title="var">A</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_nodup</span> <span class="id" title="var">inlist</span> <span class="id" title="var">cost_inlist</span> <span class="id" title="var">l</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;∧ <span class="id" title="var">y</span> = <span class="id" title="var">nodup</span> <span class="id" title="var">inlist</span> <span class="id" title="var">l</span> !}<br/>
+&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">as</span> <span class="id" title="var">l'</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">l</span>=<span class="id" title="var">l'</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">list</span> <span class="id" title="var">A</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_nodup</span> <span class="id" title="var">inlist</span> <span class="id" title="var">cost_inlist</span> <span class="id" title="var">l</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∧ <span class="id" title="var">y</span> = <span class="id" title="var">nodup</span> <span class="id" title="var">inlist</span> <span class="id" title="var">l</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">time_nodup_branch0</span>; &lt;== <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span>::<span class="id" title="var">xs</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">b</span> &lt;- <span class="id" title="var">inlist'</span> <span class="id" title="var">x</span> <span class="id" title="var">xs</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">dec</span> <span class="id" title="var">b</span> <span class="id" title="keyword">then</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">nodup'</span> <span class="id" title="var">inlist'</span> <span class="id" title="var">xs</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">time_nodup_branch1</span>; <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out1</span> &lt;- <span class="id" title="var">nodup'</span> <span class="id" title="var">inlist'</span> <span class="id" title="var">xs</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out2</span> &lt;- <span class="id" title="var">cons'</span> <span class="id" title="var">_</span> <span class="id" title="var">x</span> <span class="id" title="var">out1</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">time_nodup_branch2</span>; <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">out2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">l</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">nodup_In</span></span>: if <span class="inlinecode"><span class="id" title="var">x</span></span> is in the list, then <span class="inlinecode"><span class="id" title="var">x</span></span> is also in the list 
+    without duplicates. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">nodup_In</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> <span class="id" title="var">inlist</span> (<span class="id" title="var">p</span>: ∀ <span class="id" title="var">a</span> <span class="id" title="var">b</span>, <span class="id" title="var">inlist</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> = <span class="id" title="var">true</span> ↔ <span class="id" title="var">In</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>):<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">In</span> <span class="id" title="var">x</span> (<span class="id" title="var">nodup</span> <span class="id" title="var">inlist</span> <span class="id" title="var">l</span>) ↔ <span class="id" title="var">In</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">NoDup_nodup</span></span>: the list without duplicates satisfies the relation
+    <span class="inlinecode"><span class="id" title="var">NoDup</span></span>. 
+  
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">NoDup_nodup</span> (<span class="id" title="var">l</span>:<span class="id" title="var">list</span> <span class="id" title="var">A</span>) <span class="id" title="var">inlist</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">p</span>: ∀ <span class="id" title="var">a</span> <span class="id" title="var">b</span>, <span class="id" title="var">inlist</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> = <span class="id" title="var">true</span> ↔ <span class="id" title="var">In</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>): <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">NoDup</span> (<span class="id" title="var">nodup</span> <span class="id" title="var">inlist</span> <span class="id" title="var">l</span>).<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">nodup</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Arguments</span> <span class="id" title="var">nodup</span> {<span class="id" title="var">A</span>}.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

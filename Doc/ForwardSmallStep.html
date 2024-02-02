@@ -1,0 +1,481 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>ForwardSmallStep</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library ForwardSmallStep</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+This file verifies the properties of the forward small-step relation
+    <span class="inlinecode"><span class="id" title="var">Df</span></span> <span class="inlinecode"><span class="id" title="var">v</span></span> <span class="inlinecode"><span class="id" title="var">I</span></span> <span class="inlinecode"><span class="id" title="var">w</span></span>. The relation <span class="inlinecode"><span class="id" title="var">Df</span></span> formalizes how a single parse tree is
+    extended in a <i>forward</i> way during running the parser PDA. "Forward"
+    here means that the tree is extended from the rule that derives the
+    first symbol of the input string to the rule that derives the last
+    symbol. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Lists.List</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">ListNotations</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">list_scope</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Extraction</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Arith_base</span> <span class="id" title="var">String</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Structures.Orders</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Ltac</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">MSets</span> <span class="id" title="var">MSets.MSetProperties</span> <span class="id" title="var">MSets.MSetEqProperties</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="var">Structures.OrderedTypeEx</span> <span class="id" title="var">Structures.OrdersFacts</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Classes.RelationClasses</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Program.Equality</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Unicode.Utf8_core</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Lia</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Def</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Misc</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Tac</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="var">Coq.Program.Tactics</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="var">Coq.Program.Wf</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.Basic</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.vpg</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">ForwardSmallStep</span>(<span class="id" title="var">G</span>:<span class="id" title="var">VPG</span>).<br/>
+
+<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">Df2</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_Df_unique</span></span>: this lemma shows that a parse tree <span class="inlinecode"><span class="id" title="var">v</span></span> derives
+        only one string. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_Df_unique</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">T1</span> <span class="id" title="var">w1</span> <span class="id" title="var">T2</span> <span class="id" title="var">w2</span>, (<span class="id" title="var">Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T1</span> <span class="id" title="var">w1</span>)-&gt;(<span class="id" title="var">Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T2</span> <span class="id" title="var">w2</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">T1</span>=<span class="id" title="var">T2</span>) ∧ (<span class="id" title="var">w1</span>=<span class="id" title="var">w2</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_Df_uniqueT</span></span>: this lemma shows that the stacks of the parse
+        trees of the same string have the same length. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_Df_uniqueT</span>: ∀ <span class="id" title="var">v1</span> <span class="id" title="var">v2</span> <span class="id" title="var">T1</span> <span class="id" title="var">T2</span> <span class="id" title="var">w</span>, (<span class="id" title="var">Df</span> <span class="id" title="var">v1</span> <span class="id" title="var">T1</span> <span class="id" title="var">w</span>)-&gt;(<span class="id" title="var">Df</span> <span class="id" title="var">v2</span> <span class="id" title="var">T2</span> <span class="id" title="var">w</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">List.length</span> <span class="id" title="var">T1</span> = <span class="id" title="var">List.length</span> <span class="id" title="var">T2</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_Df_uniqueV</span></span>: this lemma shows that the parse trees of the
+        same string have the same length. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_Df_uniqueV</span>: ∀ <span class="id" title="var">v1</span> <span class="id" title="var">v2</span> <span class="id" title="var">T1</span> <span class="id" title="var">T2</span> <span class="id" title="var">w</span>, (<span class="id" title="var">Df</span> <span class="id" title="var">v1</span> <span class="id" title="var">T1</span> <span class="id" title="var">w</span>)-&gt;(<span class="id" title="var">Df</span> <span class="id" title="var">v2</span> <span class="id" title="var">T2</span> <span class="id" title="var">w</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">length</span> <span class="id" title="var">v1</span> = <span class="id" title="var">length</span> <span class="id" title="var">v2</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_Df_vw</span></span>: this lemma shows that for the parse tree <span class="inlinecode"><span class="id" title="var">v</span></span> of a
+        string <span class="inlinecode"><span class="id" title="var">w</span></span>, their lengths are equal. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_Df_vw</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>, (<span class="id" title="var">Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">length</span> <span class="id" title="var">v</span> = <span class="id" title="var">length</span> <span class="id" title="var">w</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_DF_Local</span></span>: this lemma shows that we can split a parse tree
+        into two parts and replace the first part. More specifically, if
+        we have the parse tree <span class="inlinecode"><span class="id" title="var">v</span>++[<span class="id" title="var">e</span>]++<span class="id" title="var">v2</span></span> of the string <span class="inlinecode"><span class="id" title="var">w1</span>++<span class="id" title="var">w2</span></span>,
+        where <span class="inlinecode"><span class="id" title="var">v</span></span> is of <span class="inlinecode"><span class="id" title="var">w1</span></span>, then we can replace <span class="inlinecode"><span class="id" title="var">v</span></span> with <span class="inlinecode"><span class="id" title="var">v1</span></span>, as long
+        as <span class="inlinecode"><span class="id" title="var">v1</span></span> have the same stack of <span class="inlinecode"><span class="id" title="var">v</span></span>, and <span class="inlinecode"><span class="id" title="var">v1</span></span> is of <span class="inlinecode"><span class="id" title="var">w1</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_DF_Local</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">v1</span> <span class="id" title="var">e</span> <span class="id" title="var">T</span> <span class="id" title="var">w1</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Df</span> (<span class="id" title="var">v</span>++[<span class="id" title="var">e</span>]) <span class="id" title="var">T</span> <span class="id" title="var">w1</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ (<span class="id" title="var">Df</span> (<span class="id" title="var">v1</span>++[<span class="id" title="var">e</span>]) <span class="id" title="var">T</span> <span class="id" title="var">w1</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ ∀ <span class="id" title="var">v2</span> <span class="id" title="var">T2</span> <span class="id" title="var">w2</span>, (<span class="id" title="var">Df</span> (<span class="id" title="var">v</span>++[<span class="id" title="var">e</span>]++<span class="id" title="var">v2</span>) <span class="id" title="var">T2</span> (<span class="id" title="var">w1</span>++<span class="id" title="var">w2</span>)) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ (<span class="id" title="var">Df</span> (<span class="id" title="var">v1</span>++[<span class="id" title="var">e</span>]++<span class="id" title="var">v2</span>) <span class="id" title="var">T2</span> (<span class="id" title="var">w1</span>++<span class="id" title="var">w2</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_DF_Local2</span></span>: this lemma shows that we can concatenate two
+        parse trees, as long as the first parse tree has empty stack,
+        and the two parse trees shares the same nonterminal at their
+        ends. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_DF_Local2</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">v1</span> <span class="id" title="var">w1</span> <span class="id" title="var">E</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Df</span> <span class="id" title="var">v</span> [] <span class="id" title="var">w1</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ (<span class="id" title="var">Df</span> <span class="id" title="var">v1</span> [] <span class="id" title="var">w1</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ (<span class="id" title="var">VEndWith</span> <span class="id" title="var">v</span> <span class="id" title="var">E</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ (<span class="id" title="var">VEndWith</span> <span class="id" title="var">v1</span> <span class="id" title="var">E</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ ∀ <span class="id" title="var">v2</span> <span class="id" title="var">T2</span> <span class="id" title="var">w2</span>, (<span class="id" title="var">Df</span> (<span class="id" title="var">v</span>++<span class="id" title="var">v2</span>) <span class="id" title="var">T2</span> (<span class="id" title="var">w1</span>++<span class="id" title="var">w2</span>)) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ (<span class="id" title="var">Df</span> (<span class="id" title="var">v1</span>++<span class="id" title="var">v2</span>) <span class="id" title="var">T2</span> (<span class="id" title="var">w1</span>++<span class="id" title="var">w2</span>)).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">End</span> <span class="id" title="var">Df2</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The module <span class="inlinecode"><span class="id" title="var">Core</span></span> provides the core lemmas used in the correctness
+    proof 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">Core</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">LEN_WF</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Df2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Tac</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L4_1</span></span>: Lemma 4.1 shows that when we concatenate two parse trees
+        using Lemma <span class="inlinecode"><span class="id" title="var">L_DF_Local2</span></span>, the stack does not change. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L4_1</span>: ∀ <span class="id" title="var">v1</span> <span class="id" title="var">v2</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span> <span class="id" title="var">T</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Df</span> <span class="id" title="var">v1</span> [] <span class="id" title="var">w1</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Df</span> <span class="id" title="var">v2</span> <span class="id" title="var">T</span> <span class="id" title="var">w2</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" title="var">Lu</span>, <span class="id" title="var">VEndWith</span> <span class="id" title="var">v1</span> <span class="id" title="var">Lu</span> ∧ <span class="id" title="var">VBeginWith</span> <span class="id" title="var">v2</span> <span class="id" title="var">Lu</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Df</span> (<span class="id" title="var">v1</span>++<span class="id" title="var">v2</span>) <span class="id" title="var">T</span> (<span class="id" title="var">w1</span>++<span class="id" title="var">w2</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L4_3</span></span>: Lemma 4.3 shows that we can concatenate two parse trees
+        if the stack of the first parse tree is a pending rule.. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L4_3</span>: ∀ <span class="id" title="var">_Lu</span> <span class="id" title="var">a</span> <span class="id" title="var">L</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Df</span> [<span class="id" title="var">Calv</span> (<span class="id" title="var">PndCalE</span> <span class="id" title="var">_Lu</span> <span class="id" title="var">a</span> <span class="id" title="var">L</span>)] [(<span class="id" title="var">PndCalE</span> <span class="id" title="var">_Lu</span> <span class="id" title="var">a</span> <span class="id" title="var">L</span>)] [<span class="id" title="var">Call</span> <span class="id" title="var">a</span>] →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">VBeginWith</span> <span class="id" title="var">v</span> <span class="id" title="var">L</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;((<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Df</span> (<span class="id" title="var">Calv</span> (<span class="id" title="var">PndCalE</span> <span class="id" title="var">_Lu</span> <span class="id" title="var">a</span> <span class="id" title="var">L</span>)::<span class="id" title="var">v</span>) <span class="id" title="var">T</span> (<span class="id" title="var">Call</span> <span class="id" title="var">a</span>::<span class="id" title="var">w</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∨<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Df</span> (<span class="id" title="var">Calv</span> (<span class="id" title="var">PndCalE</span> <span class="id" title="var">_Lu</span> <span class="id" title="var">a</span> <span class="id" title="var">L</span>)::<span class="id" title="var">v</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">T</span>++[(<span class="id" title="var">PndCalE</span> <span class="id" title="var">_Lu</span> <span class="id" title="var">a</span> <span class="id" title="var">L</span>)]) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Call</span> <span class="id" title="var">a</span>::<span class="id" title="var">w</span>))).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">LCallStack</span></span>: this lemma show that if a parse tree ends with a
+        call rule, then its stack is not empty. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">LCallStack</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">_v</span> <span class="id" title="var">va</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">v</span> = <span class="id" title="var">_v</span> ++ [<span class="id" title="var">Calv</span> <span class="id" title="var">va</span>]) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">T</span> != []).<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">VConnect</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> , <span class="id" title="var">Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∀ <span class="id" title="var">v1</span> <span class="id" title="var">v2</span> <span class="id" title="var">Lv1</span> <span class="id" title="var">Lv2</span>, <span class="id" title="var">v</span>=<span class="id" title="var">v1</span>++<span class="id" title="var">v2</span> → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">v1</span> != [] → <span class="id" title="var">v2</span> != [] → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">VEndWith</span> <span class="id" title="var">v1</span> <span class="id" title="var">Lv1</span> → <span class="id" title="var">VBeginWith</span> <span class="id" title="var">v2</span> <span class="id" title="var">Lv2</span> → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Lv1</span>=<span class="id" title="var">Lv2</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">Breaking</span></span>: the invariant of the forward small-step relation <span class="inlinecode"><span class="id" title="var">Df</span></span>
+      <span class="inlinecode"><span class="id" title="var">v</span></span> <span class="inlinecode"><span class="id" title="var">T</span></span> <span class="inlinecode"><span class="id" title="var">w</span></span>. The invariant <span class="inlinecode"><span class="id" title="var">Breaking</span></span> shows that based on the stack
+      <span class="inlinecode"><span class="id" title="var">T</span></span>, we can split the parse tree <span class="inlinecode"><span class="id" title="var">v</span></span> to <span class="inlinecode"><span class="id" title="var">v</span>=<span class="id" title="var">v1</span>++[<span class="id" title="var">r</span>]++<span class="id" title="var">v2</span></span>, where
+      <span class="inlinecode"><span class="id" title="var">v1</span></span> satisfies <span class="inlinecode"><span class="id" title="var">Df</span></span> and <span class="inlinecode"><span class="id" title="var">v2</span></span> satisfies the big-step derivation
+      <span class="inlinecode"><span class="id" title="var">Dm</span></span>. Further, when the stack <span class="inlinecode"><span class="id" title="var">T</span></span> is empty, the big-step
+      derivation can be extended to <span class="inlinecode"><span class="id" title="var">v</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Inductive</span> <span class="id" title="var">Breaking</span> : <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">list</span> <span class="id" title="var">VE</span>) → <span class="id" title="var">list</span> <span class="id" title="var">CalEdge</span> → <span class="id" title="var">list</span> <span class="id" title="var">symbol</span> → <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">BS</span> : ∀ <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;( <span class="id" title="var">T</span>=[] →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" title="var">Lv</span> <span class="id" title="var">L</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;((<span class="id" title="var">VBeginWith</span> <span class="id" title="var">v</span> <span class="id" title="var">Lv</span>) ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">VEndWith</span> <span class="id" title="var">v</span> <span class="id" title="var">L</span>) ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∀ <span class="id" title="var">w'</span> <span class="id" title="var">v'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Dm</span> <span class="id" title="var">L</span> <span class="id" title="var">w'</span> <span class="id" title="var">v'</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Dm</span> <span class="id" title="var">Lv</span> (<span class="id" title="var">w</span>++<span class="id" title="var">w'</span>) (<span class="id" title="var">v</span>++<span class="id" title="var">v'</span>)))))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;( <span class="id" title="var">T</span> != [] →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" title="var">T'</span> <span class="id" title="var">v1</span> <span class="id" title="var">v2</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span> <span class="id" title="var">a</span> <span class="id" title="var">_Lua</span> <span class="id" title="var">La</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;( (<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">T</span>=(<span class="id" title="var">PndCalE</span> <span class="id" title="var">_Lua</span> <span class="id" title="var">a</span> <span class="id" title="var">La</span>)::<span class="id" title="var">T'</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">v</span>=<span class="id" title="var">v1</span>++[<span class="id" title="var">Calv</span> (<span class="id" title="var">PndCalE</span> <span class="id" title="var">_Lua</span> <span class="id" title="var">a</span> <span class="id" title="var">La</span>)]++<span class="id" title="var">v2</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">w</span>=<span class="id" title="var">w1</span>++[<span class="id" title="var">Call</span> <span class="id" title="var">a</span>]++<span class="id" title="var">w2</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">w1</span> != [] → <span class="id" title="var">Df</span> <span class="id" title="var">v1</span> <span class="id" title="var">T'</span> <span class="id" title="var">w1</span>) ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">w1</span> != [] → <span class="id" title="var">Breaking</span> <span class="id" title="var">v1</span> <span class="id" title="var">T'</span> <span class="id" title="var">w1</span>) ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">w1</span>=[]  → <span class="id" title="var">v1</span>=[]) ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">w1</span>=[]  → <span class="id" title="var">T'</span>=[]) ∧<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">in_rules</span> (<span class="id" title="var">_Lua</span>, <span class="id" title="var">Alt_Linear</span> (<span class="id" title="var">Call</span> <span class="id" title="var">a</span>) <span class="id" title="var">La</span>) <span class="id" title="var">P</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;( ∀ <span class="id" title="var">L</span> <span class="id" title="var">Lv</span> <span class="id" title="var">w'</span> <span class="id" title="var">v'</span> ,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">VBeginWith</span> <span class="id" title="var">v</span> <span class="id" title="var">Lv</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">VEndWith</span> <span class="id" title="var">v</span> <span class="id" title="var">L</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Dm</span> <span class="id" title="var">L</span> <span class="id" title="var">w'</span> <span class="id" title="var">v'</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Dm</span> <span class="id" title="var">La</span> (<span class="id" title="var">w2</span>++<span class="id" title="var">w'</span>) (<span class="id" title="var">v2</span>++<span class="id" title="var">v'</span>) ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Dm</span> <span class="id" title="var">Lv</span> (<span class="id" title="var">w</span>++<span class="id" title="var">w'</span>) (<span class="id" title="var">v</span>++<span class="id" title="var">v'</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∨<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">b</span> <span class="id" title="var">la2</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">T</span>=(<span class="id" title="var">MatCalE</span> <span class="id" title="var">_Lua</span> <span class="id" title="var">a</span> <span class="id" title="var">La</span> <span class="id" title="var">b</span> <span class="id" title="var">la2</span>)::<span class="id" title="var">T'</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">v</span>=<span class="id" title="var">v1</span>++[<span class="id" title="var">Calv</span> (<span class="id" title="var">MatCalE</span> <span class="id" title="var">_Lua</span> <span class="id" title="var">a</span> <span class="id" title="var">La</span> <span class="id" title="var">b</span> <span class="id" title="var">la2</span>)]++<span class="id" title="var">v2</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">w</span>=<span class="id" title="var">w1</span>++[<span class="id" title="var">Call</span> <span class="id" title="var">a</span>]++<span class="id" title="var">w2</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">w1</span> != [] → <span class="id" title="var">Df</span> <span class="id" title="var">v1</span> <span class="id" title="var">T'</span> <span class="id" title="var">w1</span>) ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">w1</span> != [] → <span class="id" title="var">Breaking</span> <span class="id" title="var">v1</span> <span class="id" title="var">T'</span> <span class="id" title="var">w1</span>) ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">w1</span>=[]  → <span class="id" title="var">v1</span>=[]) ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">w1</span>=[]  → <span class="id" title="var">T'</span>=[]) ∧<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">in_rules</span> (<span class="id" title="var">_Lua</span>, <span class="id" title="var">Alt_Match</span> (<span class="id" title="var">a</span>) (<span class="id" title="var">b</span>)  <span class="id" title="var">La</span> <span class="id" title="var">la2</span>) <span class="id" title="var">P</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∀ <span class="id" title="var">v2e</span>, <span class="id" title="var">VEndWith</span> <span class="id" title="var">v2</span> <span class="id" title="var">v2e</span> → ∃ <span class="id" title="var">_v2e</span>, <span class="id" title="var">v2e</span>=<span class="id" title="var">V0</span> <span class="id" title="var">_v2e</span>) ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;( ∀ <span class="id" title="var">L</span> <span class="id" title="var">Lv</span> <span class="id" title="var">w'</span> <span class="id" title="var">v'</span> ,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">VBeginWith</span> <span class="id" title="var">v</span> <span class="id" title="var">Lv</span>→<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">VEndWith</span> <span class="id" title="var">v</span> <span class="id" title="var">L</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Dm</span> <span class="id" title="var">L</span> <span class="id" title="var">w'</span> <span class="id" title="var">v'</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Dm</span> <span class="id" title="var">La</span> (<span class="id" title="var">w2</span>++<span class="id" title="var">w'</span>) (<span class="id" title="var">v2</span>++<span class="id" title="var">v'</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">Breaking</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L4_2</span></span>: Lemma 4.2 shows that the forward small-step derivation
+      satisfies the invariant <span class="inlinecode"><span class="id" title="var">Breaking</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L4_2</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>, <span class="id" title="var">Breaking</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">SoundV</span></span>: the soundness of the forward small-step derivation
+        <span class="inlinecode"><span class="id" title="var">Df</span></span> means that <span class="inlinecode"><span class="id" title="var">Df</span></span> indicates the big-step derivation <span class="inlinecode"><span class="id" title="var">Dm</span></span>,
+        under certain conditions.  
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Theorem</span> <span class="id" title="var">SoundV</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> <span class="id" title="var">Lv</span> <span class="id" title="var">L</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">VBeginWith</span> <span class="id" title="var">v</span> <span class="id" title="var">Lv</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">VEndWith</span> <span class="id" title="var">v</span> <span class="id" title="var">L</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">in_rules</span> (<span class="id" title="var">L</span>, <span class="id" title="var">Alt_Epsilon</span>) <span class="id" title="var">P</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">T</span>=[] ∨ ∃ <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span> <span class="id" title="var">T'</span>, <span class="id" title="var">T</span>=(<span class="id" title="var">PndCalE</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span>)::<span class="id" title="var">T'</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Dm</span> <span class="id" title="var">Lv</span> <span class="id" title="var">w</span> <span class="id" title="var">v</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">VConnectTrue</span></span>: this lemma shows that if a parse tree starts
+      with a nonterminal in V0, then the same parse tree also ends with
+      a nonterminal in V0. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">VConnectTrue</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> , <span class="id" title="var">Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">L</span>, <span class="id" title="var">VBeginWith</span> <span class="id" title="var">v</span> (<span class="id" title="var">V0</span> <span class="id" title="var">L</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∀ <span class="id" title="var">v1</span> <span class="id" title="var">v2</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">v</span>=<span class="id" title="var">v1</span>++<span class="id" title="var">v2</span> → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">v1</span> != [] → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">Lv1</span>, <span class="id" title="var">VEndWith</span> <span class="id" title="var">v1</span> (<span class="id" title="var">V0</span> <span class="id" title="var">Lv1</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L4_4</span></span>: Lemma 4.4 shows that we can concatenate two parse trees,
+      if the first one has a stack containing only one matching rule,
+      and the two trees share the same nonterminal at their ends. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L4_4</span>: ∀ <span class="id" title="var">a</span> <span class="id" title="var">L</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> <span class="id" title="var">L1</span> <span class="id" title="var">L2</span> <span class="id" title="var">b</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Df</span> [<span class="id" title="var">Calv</span> (<span class="id" title="var">MatCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span>)] <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[(<span class="id" title="var">MatCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span>)] <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[<span class="id" title="var">Call</span> <span class="id" title="var">a</span>]) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">VBeginWith</span> <span class="id" title="var">v</span> <span class="id" title="var">L1</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Df</span> (<span class="id" title="var">Calv</span> (<span class="id" title="var">MatCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span>)::<span class="id" title="var">v</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">T</span>++[(<span class="id" title="var">MatCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span>)]) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Call</span> <span class="id" title="var">a</span>::<span class="id" title="var">w</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L4_5</span></span>: Lemma 4.5 shows that we can concatenate two parse trees,
+        if the first one has a stack with a matching rule as its top,
+        and the two trees share the same nonterminal at their ends. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L4_5</span>: ∀ <span class="id" title="var">a</span> <span class="id" title="var">L</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> <span class="id" title="var">L1</span> <span class="id" title="var">L2</span> <span class="id" title="var">b</span> <span class="id" title="var">v0</span> <span class="id" title="var">T0</span> <span class="id" title="var">w0</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Df</span> (<span class="id" title="var">v0</span>++[<span class="id" title="var">Calv</span> (<span class="id" title="var">MatCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span>)]) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">MatCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span>::<span class="id" title="var">T0</span>) (<span class="id" title="var">w0</span>++[<span class="id" title="var">Call</span> <span class="id" title="var">a</span>])) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ (<span class="id" title="var">Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ (<span class="id" title="var">VBeginWith</span> <span class="id" title="var">v</span> <span class="id" title="var">L1</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">Df</span> (<span class="id" title="var">v0</span>++<span class="id" title="var">Calv</span> (<span class="id" title="var">MatCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span>)::<span class="id" title="var">v</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">T</span>++[(<span class="id" title="var">MatCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span>)]++<span class="id" title="var">T0</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">w0</span>++<span class="id" title="var">Call</span> <span class="id" title="var">a</span>::<span class="id" title="var">w</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">CompleteM</span></span>: the completeness of the forward small-step
+        derivation <span class="inlinecode"><span class="id" title="var">Df</span></span> means that each big-step derivation <span class="inlinecode"><span class="id" title="var">Dm</span></span> is a
+        <span class="inlinecode"><span class="id" title="var">Df</span></span>, as long as the string is not empty. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Theorem</span> <span class="id" title="var">CompleteM</span>: ∀ <span class="id" title="var">Lu</span> <span class="id" title="var">w</span> <span class="id" title="var">v</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Dm</span> (<span class="id" title="var">Lu</span>) <span class="id" title="var">w</span> <span class="id" title="var">v</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">w</span> != [] →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" title="var">T</span>, <span class="id" title="var">Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> ∧ (∀ <span class="id" title="var">L</span>, <span class="id" title="var">Lu</span>=<span class="id" title="var">V0</span> <span class="id" title="var">L</span> → <span class="id" title="var">T</span>=[]) ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">T</span>=[] ∨ <span class="id" title="tactic">∃</span> <span class="id" title="var">L1</span> <span class="id" title="var">a</span> <span class="id" title="var">L2</span> <span class="id" title="var">T'</span>, <span class="id" title="var">T</span>=(<span class="id" title="var">PndCalE</span> <span class="id" title="var">L1</span> <span class="id" title="var">a</span> <span class="id" title="var">L2</span>)::<span class="id" title="var">T'</span>)).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">End</span> <span class="id" title="var">Core</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The module <span class="inlinecode"><span class="id" title="var">DFX</span></span> verifies properties of the extended forward
+    small-step derivation <span class="inlinecode"><span class="id" title="var">Dfx</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">DFX</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">LEN_WF</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">DEF</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Df2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">DM</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Tac</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">DFX_df</span></span>: this lemma shows <span class="inlinecode"><span class="id" title="var">Dfx</span></span> indicates <span class="inlinecode"><span class="id" title="var">Df</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">DFX_df</span>: ∀ <span class="id" title="var">v</span>, ∀ <span class="id" title="var">T</span> <span class="id" title="var">w</span> <span class="id" title="var">v1</span> <span class="id" title="var">v2</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Dfx</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> <span class="id" title="var">v1</span> <span class="id" title="var">v2</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">DF_dfx</span></span>: this lemma shows <span class="inlinecode"><span class="id" title="var">Df</span></span> also indicates <span class="inlinecode"><span class="id" title="var">Dfx</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">DF_dfx</span>: ∀ <span class="id" title="var">v</span>, ∀ <span class="id" title="var">T</span> <span class="id" title="var">w</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">v1</span> <span class="id" title="var">v2</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span>, <span class="id" title="var">Dfx</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> <span class="id" title="var">v1</span> <span class="id" title="var">v2</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">End</span> <span class="id" title="var">DFX</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">Split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">LEN_WF</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">DFX</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Ltac</span> <span class="id" title="var">cmp_len</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| |- <span class="id" title="var">len</span> ?<span class="id" title="var">v</span> (?<span class="id" title="var">v</span> ++ ?<span class="id" title="var">e</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">len</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="tactic">rewrite</span> (<span class="id" title="var">app_length</span> <span class="id" title="var">v</span> <span class="id" title="var">e</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; <span class="id" title="tactic">eauto</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">DF_SPLIT</span></span>: this lemma shows that we can split a parse tree into
+        two parts, and the first parts still satisfies <span class="inlinecode"><span class="id" title="var">Df</span></span>, as long as
+        it is nonempty.  
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">DF_SPLIT</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>, <span class="id" title="var">Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">v1</span> <span class="id" title="var">v2</span>, <span class="id" title="var">v</span>=<span class="id" title="var">v1</span>++<span class="id" title="var">v2</span> → <span class="id" title="var">v1</span> != [] → ∃ <span class="id" title="var">T1</span> <span class="id" title="var">w1</span>, <span class="id" title="var">Df</span> <span class="id" title="var">v1</span> <span class="id" title="var">T1</span> <span class="id" title="var">w1</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">DF_SPLIT2</span></span>: this lemma shows that we can split a parse tree
+        into two parts, and the first parts still satisfies <span class="inlinecode"><span class="id" title="var">Df</span></span>, as
+        long as it is nonempty, and the string can be split accordingly.
+        
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">DF_SPLIT2</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>, <span class="id" title="var">Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">v1</span> <span class="id" title="var">v2</span>, <span class="id" title="var">v</span>=<span class="id" title="var">v1</span>++<span class="id" title="var">v2</span> → <span class="id" title="var">v1</span> != [] → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">T1</span> <span class="id" title="var">w1</span>, <span class="id" title="var">Df</span> <span class="id" title="var">v1</span> <span class="id" title="var">T1</span> <span class="id" title="var">w1</span> ∧ ∃ <span class="id" title="var">w2</span>, <span class="id" title="var">w1</span>++<span class="id" title="var">w2</span>=<span class="id" title="var">w</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">End</span> <span class="id" title="var">Split</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">ForwardSmallStep</span>.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

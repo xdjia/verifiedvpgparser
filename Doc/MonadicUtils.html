@@ -1,0 +1,337 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>MonadicUtils</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library MonadicUtils</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+This file provides some basic monadic functions.  
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Monad</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Program</span> <span class="id" title="var">List</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Lia</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">cons'</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <span class="id" title="var">A</span>: <span class="id" title="keyword">Type</span>.<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">cons_ct</span></span>: adding an element to a list is a basic operation. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cons_ct</span> := 5.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">cons'</span></span>: the monadic version of <span class="inlinecode"><span class="id" title="var">cons</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">cons'</span> (<span class="id" title="var">x</span>:<span class="id" title="var">A</span>) <span class="id" title="var">xs</span> <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">list</span> <span class="id" title="var">A</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cons_ct</span> ∧ <span class="id" title="var">y</span> = <span class="id" title="var">cons</span> <span class="id" title="var">x</span> <span class="id" title="var">xs</span> !} :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cons_ct</span>; &lt;== <span class="id" title="var">cons</span> <span class="id" title="var">x</span> <span class="id" title="var">xs</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">cons'</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">filter_map'</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variables</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <span class="id" title="var">P_map</span> : (<span class="id" title="var">list</span> <span class="id" title="var">A</span>) → <span class="id" title="var">nat</span> → <span class="id" title="keyword">Prop</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">filter'</span></span>: the monadic version of <span class="inlinecode"><span class="id" title="var">filter</span></span>, which filters a list
+    with a boolean function of the list elements. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Program Fixpoint</span> <span class="id" title="var">filter'</span> {<span class="id" title="var">f</span>} {<span class="id" title="var">cost_f</span>}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">f'</span>:<span class="id" title="keyword">∀</span> <span class="id" title="var">x</span>, {! <span class="id" title="var">y</span> !:! <span class="id" title="var">bool</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">c</span> = <span class="id" title="var">cost_f</span> <span class="id" title="var">x</span> ∧ <span class="id" title="var">y</span> = <span class="id" title="var">f</span> <span class="id" title="var">x</span> !}) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">l</span>:<span class="id" title="var">list</span> <span class="id" title="var">A</span>)<br/>
+&nbsp;&nbsp;: {! <span class="id" title="var">y</span> !:! <span class="id" title="var">list</span> <span class="id" title="var">A</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">c</span> = <span class="id" title="var">cost_filter</span> <span class="id" title="var">f</span> <span class="id" title="var">cost_f</span> <span class="id" title="var">l</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">List.filter</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span> !} :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">time_filter_branch1</span>; &lt;== <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span> :: <span class="id" title="var">l</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">fx</span> &lt;- <span class="id" title="var">f'</span> <span class="id" title="var">x</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">dec</span> <span class="id" title="var">fx</span> <span class="id" title="keyword">then</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">acc</span> &lt;- <span class="id" title="var">filter'</span> <span class="id" title="var">f'</span> <span class="id" title="var">l</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">cons'</span> <span class="id" title="var">A</span> <span class="id" title="var">x</span> <span class="id" title="var">acc</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">time_filter_branch2</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">filter'</span> <span class="id" title="var">f'</span> <span class="id" title="var">l</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">time_filter_branch3</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">filter_map'</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">exitsb'</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <span class="id" title="var">A</span>: <span class="id" title="keyword">Type</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <span class="id" title="var">f</span>: <span class="id" title="var">A</span> → <span class="id" title="var">bool</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <span class="id" title="var">cost_f</span>: <span class="id" title="var">A</span> → <span class="id" title="var">nat</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <span class="id" title="var">f'</span>: <span class="id" title="keyword">∀</span> <span class="id" title="var">x</span>, {! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_f</span> <span class="id" title="var">x</span> ∧ <span class="id" title="var">y</span> = <span class="id" title="var">f</span> <span class="id" title="var">x</span> !}.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">exitsb'</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Arguments</span> <span class="id" title="var">existsb'</span> {<span class="id" title="var">A</span>} {<span class="id" title="var">f</span>} {<span class="id" title="var">cost_f</span>}.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">concat'</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <span class="id" title="var">A</span>: <span class="id" title="keyword">Type</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">bound_cost_concat</span></span>: cost of concating a list of lists depends on
+      the number and the maximal length <span class="inlinecode"><span class="id" title="var">ln</span></span> of the lists. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">bound_cost_concat</span>: <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">∃</span> <span class="id" title="var">k</span> <span class="id" title="var">b1</span> <span class="id" title="var">b2</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">ls</span> <span class="id" title="var">ln</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">∀</span> <span class="id" title="var">l</span>, (<span class="id" title="var">In</span> <span class="id" title="var">l</span> <span class="id" title="var">ls</span>) → (<span class="id" title="var">length</span> <span class="id" title="var">l</span> ≤ <span class="id" title="var">ln</span>)) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_concat</span> <span class="id" title="var">ls</span> ≤ (<span class="id" title="var">k</span> × <span class="id" title="var">ln</span> + <span class="id" title="var">b1</span>) × (<span class="id" title="var">length</span> <span class="id" title="var">ls</span>) + <span class="id" title="var">b2</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">_concat'</span></span>: the monadic version of <span class="inlinecode"><span class="id" title="var">concat</span></span>, which concat a list
+    of lists to a list. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Program Fixpoint</span> <span class="id" title="var">_concat</span> (<span class="id" title="var">l</span> : <span class="id" title="var">list</span> (<span class="id" title="var">list</span> <span class="id" title="var">A</span>)) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;: {! <span class="id" title="var">res</span> !:! <span class="id" title="var">list</span> <span class="id" title="var">A</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">c</span> = <span class="id" title="var">cost_concat</span> <span class="id" title="var">l</span> ∧ <span class="id" title="var">res</span> = <span class="id" title="var">concat</span> <span class="id" title="var">l</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> ⇒ += <span class="id" title="var">concat_bt</span>; &lt;== <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">cons</span> <span class="id" title="var">x</span> <span class="id" title="var">l</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">l'</span> &lt;- <span class="id" title="var">_concat</span> <span class="id" title="var">l</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">_app</span> <span class="id" title="var">x</span> <span class="id" title="var">l'</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">concat_inner_time</span>; &lt;== <span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">concat'</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">tail'</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <span class="id" title="var">A</span>: <span class="id" title="keyword">Type</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">tail'</span></span>: the monadic version of <span class="inlinecode"><span class="id" title="var">tail</span></span>, which takes the tail of a
+    list. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Program Fixpoint</span> <span class="id" title="var">tail'</span> <span class="id" title="var">l</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">res</span> !:! <span class="id" title="var">list</span> <span class="id" title="var">A</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_tail</span> <span class="id" title="var">l</span> ∧ <span class="id" title="var">res</span> = <span class="id" title="var">tl</span> <span class="id" title="var">l</span> !}<br/>
+&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">as</span> <span class="id" title="var">l'</span> <span class="id" title="keyword">return</span> <span class="id" title="var">l</span>=<span class="id" title="var">l'</span> → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">res</span> !:! <span class="id" title="var">list</span> <span class="id" title="var">A</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">c</span> = <span class="id" title="var">cost_tail</span> <span class="id" title="var">l</span> ∧ <span class="id" title="var">res</span> = <span class="id" title="var">tl</span> <span class="id" title="var">l</span> !} <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">tail_bt</span>; &lt;== <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">cons</span> <span class="id" title="var">_</span> <span class="id" title="var">m</span> ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">tail_inner_time</span>; &lt;== <span class="id" title="var">m</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">l</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">tail'</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">map'</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">time_map_branch1</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">time_map_branch2</span> := 1.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">time_map_branch1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">time_map_branch2</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cons_ct</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <span class="id" title="var">A</span>: <span class="id" title="keyword">Type</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <span class="id" title="var">B</span>: <span class="id" title="keyword">Type</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <span class="id" title="var">f</span>: <span class="id" title="var">A</span>→<span class="id" title="var">B</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <span class="id" title="var">cost_f</span>: <span class="id" title="var">A</span>→<span class="id" title="var">nat</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">cost_map</span> <span class="id" title="var">l</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> ⇒ <span class="id" title="var">time_map_branch1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span>::<span class="id" title="var">l'</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_f</span> <span class="id" title="var">x</span> + (<span class="id" title="var">cost_map</span> <span class="id" title="var">l'</span>) + <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cons_ct</span> + <span class="id" title="var">time_map_branch2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Hint Unfold</span> <span class="id" title="var">cost_map</span> : <span class="id" title="var">misc</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">bound_cost_map</span></span>: the cost of <span class="inlinecode"><span class="id" title="var">map'</span></span> is bounded by the length of
+      the list, and the maximal cost of the function <span class="inlinecode"><span class="id" title="var">f</span></span> on each
+      element. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">bound_cost_map</span>:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">∃</span> <span class="id" title="var">k</span>, <span class="id" title="keyword">∀</span> <span class="id" title="var">a</span>, <span class="id" title="var">cost_f</span> <span class="id" title="var">a</span> ≤ <span class="id" title="var">k</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">∃</span> <span class="id" title="var">k</span> <span class="id" title="var">b</span>, <span class="id" title="keyword">∀</span> <span class="id" title="var">l</span>, <span class="id" title="var">cost_map</span> <span class="id" title="var">l</span> ≤ <span class="id" title="var">k</span> × (<span class="id" title="var">length</span> <span class="id" title="var">l</span>) + <span class="id" title="var">b</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">map'</span></span>: the monadic version of <span class="inlinecode"><span class="id" title="var">map</span></span>, which maps the elements in a
+    list to another elements. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Program Fixpoint</span> <span class="id" title="var">map'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">f'</span>: <span class="id" title="keyword">∀</span> (<span class="id" title="var">x</span>:<span class="id" title="var">A</span>), <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">B</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_f</span> <span class="id" title="var">x</span> ∧ <span class="id" title="var">y</span> = <span class="id" title="var">f</span> <span class="id" title="var">x</span> !})<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;: {! <span class="id" title="var">y</span> !:! <span class="id" title="var">list</span> <span class="id" title="var">B</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_map</span> <span class="id" title="var">l</span> ∧ <span class="id" title="var">y</span> = <span class="id" title="var">map</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span> !}<br/>
+&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">as</span> <span class="id" title="var">ll</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">l</span>=<span class="id" title="var">ll</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">list</span> <span class="id" title="var">B</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_map</span> <span class="id" title="var">l</span> ∧ <span class="id" title="var">y</span> = <span class="id" title="var">map</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">time_map_branch1</span>; &lt;== <span class="id" title="var">nil</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">x</span>::<span class="id" title="var">l'</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">res</span> &lt;- <span class="id" title="var">map'</span> <span class="id" title="var">f'</span> <span class="id" title="var">l'</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">fx</span> &lt;- <span class="id" title="var">f'</span> <span class="id" title="var">x</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">cons'</span> <span class="id" title="var">B</span> <span class="id" title="var">fx</span> <span class="id" title="var">res</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">time_map_branch2</span>; &lt;== <span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">l</span>).<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">pair'</span></span>: the monadic version of <span class="inlinecode"><span class="id" title="var">pair</span></span>, which makes a tuple. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">pair'</span> (<span class="id" title="var">a</span>:<span class="id" title="var">A</span>) (<span class="id" title="var">b</span>:<span class="id" title="var">B</span>)<br/>
+&nbsp;&nbsp;: {! <span class="id" title="var">y</span> !:! <span class="id" title="var">A</span>×<span class="id" title="var">B</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">time_pair</span> ∧ <span class="id" title="var">y</span> = <span class="id" title="var">pair</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> !}<br/>
+&nbsp;&nbsp;:= += <span class="id" title="var">time_pair</span>; &lt;== <span class="id" title="var">pair</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">map'</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">fold'</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_fold_branch1</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_fold_branch2</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_fold_branch1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_fold_branch2</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">cost_fold</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{<span class="id" title="var">f</span>:<span class="id" title="var">A</span>→<span class="id" title="var">B</span>→<span class="id" title="var">A</span>} <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{<span class="id" title="var">cost_f</span>:<span class="id" title="var">A</span>→<span class="id" title="var">B</span>→<span class="id" title="var">nat</span>} <span class="id" title="var">l</span> <span class="id" title="var">a</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> ⇒ <span class="id" title="var">cost_fold_branch1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">cons</span> <span class="id" title="var">b</span> <span class="id" title="var">t</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_f</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@<span class="id" title="var">cost_fold</span> <span class="id" title="var">f</span> <span class="id" title="var">cost_f</span> <span class="id" title="var">t</span> (<span class="id" title="var">f</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_fold_branch2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">fold'</span></span>: the monadic version of <span class="inlinecode"><span class="id" title="tactic">fold</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Program Fixpoint</span> <span class="id" title="var">fold'</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{<span class="id" title="var">f</span>:<span class="id" title="var">A</span>→<span class="id" title="var">B</span>→<span class="id" title="var">A</span>} <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{<span class="id" title="var">cost_f</span>:<span class="id" title="var">A</span>→<span class="id" title="var">B</span>→<span class="id" title="var">nat</span>}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">f'</span>:<span class="id" title="keyword">∀</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">A</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_f</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">f</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> !})<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">l</span> <span class="id" title="var">a</span><br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = @<span class="id" title="var">cost_fold</span> <span class="id" title="var">f</span> <span class="id" title="var">cost_f</span> <span class="id" title="var">l</span> <span class="id" title="var">a</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">fold_left</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span> <span class="id" title="var">a</span> !}<br/>
+&nbsp;&nbsp;:= <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">as</span> <span class="id" title="var">l'</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">l</span>=<span class="id" title="var">l'</span>)-&gt;<br/>
+&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = @<span class="id" title="var">cost_fold</span> <span class="id" title="var">f</span> <span class="id" title="var">cost_f</span> <span class="id" title="var">l</span> <span class="id" title="var">a</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">fold_left</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span> <span class="id" title="var">a</span> !}<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">nil</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_fold_branch1</span>; &lt;== <span class="id" title="var">a</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">cons</span> <span class="id" title="var">b</span> <span class="id" title="var">t</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">fab</span> &lt;- <span class="id" title="var">f'</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- @<span class="id" title="var">fold'</span> <span class="id" title="var">f</span> <span class="id" title="var">cost_f</span> <span class="id" title="var">f'</span> <span class="id" title="var">t</span> <span class="id" title="var">fab</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_fold_branch2</span>; &lt;== <span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">l</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">fold'</span>.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

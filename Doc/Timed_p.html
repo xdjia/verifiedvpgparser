@@ -1,0 +1,781 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>Timed_p</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library Timed_p</h1>
+
+<div class="code">
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Lists.List</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">ListNotations</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Extraction</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Arith</span> <span class="id" title="var">String</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Structures.Orders</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Ltac</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">MSets</span> <span class="id" title="var">MSets.MSetProperties</span> <span class="id" title="var">MSets.MSetEqProperties</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="var">Structures.OrderedTypeEx</span> <span class="id" title="var">Structures.OrdersFacts</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Classes.RelationClasses</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Unicode.Utf8_core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Program</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Misc</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Def</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Tac</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Tac.Tac</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Def.DEF</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Def.DF</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ForwardSmallStep</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">ForwardSmallStep.DFX</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.Basic</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.vpg</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Monad</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">MonadicUtils</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Lia</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">GenForest</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">PreTimed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Parser</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_eqvv</span> := <span class="id" title="var">vpg.cost_eqvv</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">findRuleWithLc</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_andb</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_eqstr</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">findRuleWithLc_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> <span class="id" title="var">r</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">Lr</span>, <span class="id" title="var">Alt_Linear</span> <span class="id" title="var">i'</span> <span class="id" title="var">L'</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">andb</span> (<span class="id" title="var">eqvv</span> <span class="id" title="var">Lr</span> <span class="id" title="var">L</span>) (<span class="id" title="var">eqs</span> <span class="id" title="var">i</span> <span class="id" title="var">i'</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_findRuleWithLc_sub_branch1</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_findRuleWithLc_sub_branch2</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_findRuleWithLc_sub_branch1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_findRuleWithLc_sub_branch2</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_findRuleWithLc_sub</span> <span class="id" title="var">L</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">Lr</span>, <span class="id" title="var">Alt_Linear</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_andb</span> + <span class="id" title="var">cost_eqstr</span> + <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_eqvv</span> <span class="id" title="var">Lr</span> <span class="id" title="var">L</span> + <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_findRuleWithLc_sub_branch1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <span class="id" title="var">cost_findRuleWithLc_sub_branch2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">findRuleWithLc_sub'</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_findRuleWithLc_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">r</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">findRuleWithLc_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> <span class="id" title="var">r</span> !}<br/>
+&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">as</span> <span class="id" title="var">r'</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">r</span>=<span class="id" title="var">r'</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">c</span> = <span class="id" title="var">cost_findRuleWithLc_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">r</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">findRuleWithLc_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> <span class="id" title="var">r</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">Lr</span>, <span class="id" title="var">Alt_Linear</span> <span class="id" title="var">i'</span> <span class="id" title="var">_</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">res</span> &lt;- <span class="id" title="var">eqvv'</span> <span class="id" title="var">Lr</span> <span class="id" title="var">L</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_andb</span> + <span class="id" title="var">cost_eqstr</span> +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_findRuleWithLc_sub_branch1</span>; <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">andb</span> <span class="id" title="var">res</span> (<span class="id" title="var">eqs</span> <span class="id" title="var">i</span> <span class="id" title="var">i'</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_findRuleWithLc_sub_branch2</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">r</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Next</span> <span class="id" title="keyword">Obligation</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">cost_findRuleWithLc_sub</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">split</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">replace</span> <span class="id" title="var">vpg.cost_eqvv</span> <span class="id" title="keyword">with</span> <span class="id" title="var">cost_eqvv</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">lia</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Defined</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_findRuleWithLc</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_filter</span> <span class="id" title="var">_</span> (<span class="id" title="var">findRuleWithLc_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">cost_findRuleWithLc_sub</span> <span class="id" title="var">L</span>) <span class="id" title="var">P</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">findRuleWithLc'</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">c</span> = <span class="id" title="var">cost_findRuleWithLc</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">findRuleWithLc</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> !}<br/>
+&nbsp;&nbsp;:= <span class="id" title="var">filter'</span> <span class="id" title="var">_</span> (<span class="id" title="var">findRuleWithLc_sub'</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span>) <span class="id" title="var">P</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">findRuleWithLc</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">findRuleWithMa</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">findRuleWithMa_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> <span class="id" title="var">r</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">Lr</span>, <span class="id" title="var">Alt_Match</span> <span class="id" title="var">i'</span> <span class="id" title="var">i2</span> <span class="id" title="var">L'</span> <span class="id" title="var">L''</span>) ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">eqvv</span> <span class="id" title="var">Lr</span> <span class="id" title="var">L</span> &amp;&amp; <span class="id" title="var">String.eqb</span> <span class="id" title="var">i</span> <span class="id" title="var">i'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">findRuleWithMa_sub_branch1</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">findRuleWithMa_sub_branch2</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">findRuleWithMa_sub_branch1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">findRuleWithMa_sub_branch2</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_findRuleWithMa_sub</span> <span class="id" title="var">L</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">Lr</span>, <span class="id" title="var">Alt_Match</span> <span class="id" title="var">i'</span> <span class="id" title="var">i2</span> <span class="id" title="var">L'</span> <span class="id" title="var">L''</span>) ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_andb</span> + <span class="id" title="var">cost_eqstr</span> + <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_eqvv</span> <span class="id" title="var">Lr</span> <span class="id" title="var">L</span> + <span class="id" title="var">findRuleWithMa_sub_branch1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <span class="id" title="var">findRuleWithMa_sub_branch2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">findRuleWithMa_sub'</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">L</span> <span class="id" title="var">i</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_findRuleWithMa_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">r</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">findRuleWithMa_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> <span class="id" title="var">r</span> !}<br/>
+&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">as</span> <span class="id" title="var">r'</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">r</span>=<span class="id" title="var">r'</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">c</span> = <span class="id" title="var">cost_findRuleWithMa_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">r</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">findRuleWithMa_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span>  <span class="id" title="var">r</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">Lr</span>, <span class="id" title="var">Alt_Match</span> <span class="id" title="var">i'</span> <span class="id" title="var">i2</span> <span class="id" title="var">L'</span> <span class="id" title="var">L''</span>) ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_andb</span> + <span class="id" title="var">cost_eqstr</span> + <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_eqvv</span> <span class="id" title="var">Lr</span> <span class="id" title="var">L</span> + <span class="id" title="var">findRuleWithMa_sub_branch1</span>; <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">eqvv</span> <span class="id" title="var">Lr</span> <span class="id" title="var">L</span> &amp;&amp; <span class="id" title="var">String.eqb</span> <span class="id" title="var">i</span> <span class="id" title="var">i'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">findRuleWithMa_sub_branch2</span>; <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">r</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_findRuleWithMa</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_filter</span> <span class="id" title="var">_</span> (<span class="id" title="var">findRuleWithMa_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">cost_findRuleWithMa_sub</span> <span class="id" title="var">L</span>) <span class="id" title="var">P</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">findRuleWithMa'</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">c</span> = <span class="id" title="var">cost_findRuleWithMa</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">findRuleWithMa</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> !}<br/>
+&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">filter'</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">findRuleWithMa_sub'</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span>) <span class="id" title="var">P</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">findRuleWithMa</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">findRuleWithMb</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">findRuleWithMb_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">r</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">Lr</span>, <span class="id" title="var">Alt_Match</span> <span class="id" title="var">i'</span> <span class="id" title="var">i2</span> <span class="id" title="var">L'</span> <span class="id" title="var">L''</span>) ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">eqvv</span> <span class="id" title="var">Lr</span> <span class="id" title="var">L</span>) &amp;&amp; (<span class="id" title="var">eqvv</span> <span class="id" title="var">L'</span> <span class="id" title="var">L1</span>) &amp;&amp; <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">String.eqb</span> <span class="id" title="var">i'</span> <span class="id" title="var">a</span>) &amp;&amp; (<span class="id" title="var">String.eqb</span> <span class="id" title="var">i2</span> <span class="id" title="var">b</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">findRuleWithMb_sub_branch1</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">findRuleWithMb_sub_branch2</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">findRuleWithMb_sub_branch1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">findRuleWithMb_sub_branch2</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_andb</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_eqstr</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_findRuleWithMb_sub</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">L</span> <span class="id" title="var">L1</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">Lr</span>, <span class="id" title="var">Alt_Match</span> <span class="id" title="var">i'</span> <span class="id" title="var">i2</span> <span class="id" title="var">L'</span> <span class="id" title="var">L''</span>) ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3 × <span class="id" title="var">cost_andb</span> + 2 × <span class="id" title="var">cost_eqstr</span> + <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_eqvv</span> <span class="id" title="var">Lr</span> <span class="id" title="var">L</span> + <span class="id" title="var">cost_eqvv</span> <span class="id" title="var">L'</span> <span class="id" title="var">L1</span> + <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">findRuleWithMb_sub_branch1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <span class="id" title="var">findRuleWithMb_sub_branch2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">findRuleWithMb_sub'</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_findRuleWithMb_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">L1</span> <span class="id" title="var">r</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">findRuleWithMb_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">r</span> !}<br/>
+&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">as</span> <span class="id" title="var">r'</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">r</span>=<span class="id" title="var">r'</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">c</span> = <span class="id" title="var">cost_findRuleWithMb_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">L1</span> <span class="id" title="var">r</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">findRuleWithMb_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span>  <span class="id" title="var">r</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">Lr</span>, <span class="id" title="var">Alt_Match</span> <span class="id" title="var">i'</span> <span class="id" title="var">i2</span> <span class="id" title="var">L'</span> <span class="id" title="var">L''</span>) ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">res1</span> &lt;- <span class="id" title="var">eqvv'</span> <span class="id" title="var">Lr</span> <span class="id" title="var">L</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">res2</span> &lt;- <span class="id" title="var">eqvv'</span> <span class="id" title="var">L'</span> <span class="id" title="var">L1</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= 3 × <span class="id" title="var">cost_andb</span> + 2 × <span class="id" title="var">cost_eqstr</span> + <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">findRuleWithMb_sub_branch1</span>; <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">res1</span> &amp;&amp; <span class="id" title="var">res2</span> &amp;&amp; (<span class="id" title="var">String.eqb</span> <span class="id" title="var">i'</span> <span class="id" title="var">a</span>) &amp;&amp; (<span class="id" title="var">String.eqb</span> <span class="id" title="var">i2</span> <span class="id" title="var">b</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">findRuleWithMb_sub_branch2</span>; <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">r</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_findRuleWithMb</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_filter</span> <span class="id" title="var">_</span> (<span class="id" title="var">findRuleWithMb_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">cost_findRuleWithMb_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">L1</span>) <span class="id" title="var">P</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Next</span> <span class="id" title="keyword">Obligation</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">split</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">cost_findRuleWithMb_sub</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">replace</span> <span class="id" title="var">vpg.cost_eqvv</span> <span class="id" title="keyword">with</span> <span class="id" title="var">cost_eqvv</span>; <span class="id" title="tactic">auto</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">lia</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Defined</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">findRuleWithMb'</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">c</span> = <span class="id" title="var">cost_findRuleWithMb</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">findRuleWithMb</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> !}<br/>
+&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">filter'</span> <span class="id" title="var">_</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">findRuleWithMb_sub'</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span>) <span class="id" title="var">P</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">findRuleWithMb</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">convert2PlainE</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">convert2PlainE_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">_</span>, <span class="id" title="var">Alt_Linear</span> <span class="id" title="var">_</span> <span class="id" title="var">L'</span>) ⇒ <span class="id" title="var">PlnE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <span class="id" title="var">PlnE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2PlainE_sub_branch1</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2PlainE_sub_branch2</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_convert2PlainE_sub_branch1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_convert2PlainE_sub_branch2</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2PlainE_sub</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">_</span>, <span class="id" title="var">Alt_Linear</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_convert2PlainE_sub_branch1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_convert2PlainE_sub_branch2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">convert2PlainE_sub'</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_convert2PlainE_sub</span> <span class="id" title="var">r</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">convert2PlainE_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">r</span> !}<br/>
+&nbsp;&nbsp;:= <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">as</span> <span class="id" title="var">r'</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">r</span>=<span class="id" title="var">r'</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_convert2PlainE_sub</span> <span class="id" title="var">r</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">convert2PlainE_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">r</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">_</span>, <span class="id" title="var">Alt_Linear</span> <span class="id" title="var">_</span> <span class="id" title="var">L'</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_convert2PlainE_sub_branch1</span>; &lt;== <span class="id" title="var">PlnE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_convert2PlainE_sub_branch2</span>; &lt;== <span class="id" title="var">PlnE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">r</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2PlainE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_findRuleWithLc</span> <span class="id" title="var">L</span> (<span class="id" title="var">Plain</span> <span class="id" title="var">s</span>) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_map</span> <span class="id" title="var">_</span> (<span class="id" title="var">cost_convert2PlainE_sub</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">findRuleWithLc</span> <span class="id" title="var">L</span> (<span class="id" title="var">Plain</span> <span class="id" title="var">s</span>)).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">convert2PlainE'</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_convert2PlainE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">convert2PlainE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> !} <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">rs</span> &lt;- <span class="id" title="var">findRuleWithLc'</span> <span class="id" title="var">L</span> (<span class="id" title="var">Plain</span> <span class="id" title="var">s</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">map'</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> (<span class="id" title="var">convert2PlainE_sub'</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span>) <span class="id" title="var">rs</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">out</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Next</span> <span class="id" title="keyword">Obligation</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">split</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">cost_convert2PlainE</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">convert2PlainE</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">convert2CallLinearE</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">convert2CallLinearE_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">_</span>, <span class="id" title="var">Alt_Linear</span> <span class="id" title="var">_</span> <span class="id" title="var">L'</span>) ⇒ <span class="id" title="var">PndCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <span class="id" title="var">PndCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2CallLinearE_sub_branch1</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2CallLinearE_sub_branch2</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_convert2CallLinearE_sub_branch1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_convert2CallLinearE_sub_branch2</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2CallLinearE_sub</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">_</span>, <span class="id" title="var">Alt_Linear</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_convert2CallLinearE_sub_branch1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_convert2CallLinearE_sub_branch2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">convert2CallLinearE_sub'</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_convert2CallLinearE_sub</span> <span class="id" title="var">r</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">convert2CallLinearE_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">r</span> !}<br/>
+&nbsp;&nbsp;:= <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">as</span> <span class="id" title="var">r'</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">r</span>=<span class="id" title="var">r'</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_convert2CallLinearE_sub</span> <span class="id" title="var">r</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">convert2CallLinearE_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">r</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">_</span>, <span class="id" title="var">Alt_Linear</span> <span class="id" title="var">_</span> <span class="id" title="var">L'</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_convert2CallLinearE_sub_branch1</span>; &lt;== <span class="id" title="var">PndCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_convert2CallLinearE_sub_branch2</span>; &lt;== <span class="id" title="var">PndCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">r</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2CallLinearE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_findRuleWithLc</span> <span class="id" title="var">L</span> (<span class="id" title="var">Call</span> <span class="id" title="var">s</span>) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_map</span> <span class="id" title="var">_</span> (<span class="id" title="var">cost_convert2CallLinearE_sub</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">findRuleWithLc</span> <span class="id" title="var">L</span> (<span class="id" title="var">Call</span> <span class="id" title="var">s</span>)).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">convert2CallLinearE'</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">c</span> = <span class="id" title="var">cost_convert2CallLinearE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">convert2CallLinearE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> !} <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">rs</span> &lt;- <span class="id" title="var">findRuleWithLc'</span> <span class="id" title="var">L</span> (<span class="id" title="var">Call</span> <span class="id" title="var">s</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">map'</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> (<span class="id" title="var">convert2CallLinearE_sub'</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span>) <span class="id" title="var">rs</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">out</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Next</span> <span class="id" title="keyword">Obligation</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">split</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">cost_convert2CallLinearE</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">convert2CallLinearE</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">convert2CallMatchE</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">convert2CallMatchE_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">_</span>, <span class="id" title="var">Alt_Match</span> <span class="id" title="var">_</span> <span class="id" title="var">b</span> <span class="id" title="var">L'</span> <span class="id" title="var">L2</span>) ⇒ (<span class="id" title="var">MatCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L'</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ (<span class="id" title="var">MatCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2CallMatchE_sub_branch1</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2CallMatchE_sub_branch2</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_convert2CallMatchE_sub_branch1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_convert2CallMatchE_sub_branch2</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2CallMatchE_sub</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">_</span>, <span class="id" title="var">Alt_Linear</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_convert2CallMatchE_sub_branch1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_convert2CallMatchE_sub_branch2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">convert2CallMatchE_sub'</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_convert2CallMatchE_sub</span> <span class="id" title="var">r</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">convert2CallMatchE_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">r</span> !}<br/>
+&nbsp;&nbsp;:= <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">as</span> <span class="id" title="var">r'</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">r</span>=<span class="id" title="var">r'</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_convert2CallMatchE_sub</span> <span class="id" title="var">r</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">convert2CallMatchE_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">r</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">_</span>, <span class="id" title="var">Alt_Match</span> <span class="id" title="var">_</span> <span class="id" title="var">b</span> <span class="id" title="var">L'</span> <span class="id" title="var">L2</span>) ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_convert2CallMatchE_sub_branch1</span>; <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;== (<span class="id" title="var">MatCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L'</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_convert2CallMatchE_sub_branch2</span>; <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;== (<span class="id" title="var">MatCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">r</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2CallMatchE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_findRuleWithMa</span> <span class="id" title="var">L</span> (<span class="id" title="var">s</span>) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_map</span> <span class="id" title="var">_</span> (<span class="id" title="var">cost_convert2CallMatchE_sub</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">findRuleWithMa</span> <span class="id" title="var">L</span> (<span class="id" title="var">s</span>)).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">convert2CallMatchE'</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">c</span> = <span class="id" title="var">cost_convert2CallMatchE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">convert2CallMatchE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> !} <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">rs</span> &lt;- <span class="id" title="var">findRuleWithMa'</span> <span class="id" title="var">L</span> (<span class="id" title="var">s</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">map'</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> (<span class="id" title="var">convert2CallMatchE_sub'</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span>) <span class="id" title="var">rs</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">out</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Next</span> <span class="id" title="keyword">Obligation</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">split</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">cost_convert2CallMatchE</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">convert2CallMatchE</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">convert2RetLinearE</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">convert2RetLinearE_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">_</span>, <span class="id" title="var">Alt_Linear</span> <span class="id" title="var">_</span> <span class="id" title="var">L'</span>) ⇒ <span class="id" title="var">PndRetE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <span class="id" title="var">PndRetE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2RetLinearE_sub_branch1</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2RetLinearE_sub_branch2</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_convert2RetLinearE_sub_branch1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_convert2RetLinearE_sub_branch2</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2RetLinearE_sub</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">_</span>, <span class="id" title="var">Alt_Linear</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_convert2RetLinearE_sub_branch1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_convert2RetLinearE_sub_branch2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">convert2RetLinearE_sub'</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_convert2RetLinearE_sub</span> <span class="id" title="var">r</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">convert2RetLinearE_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">r</span> !}<br/>
+&nbsp;&nbsp;:= <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">as</span> <span class="id" title="var">r'</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">r</span>=<span class="id" title="var">r'</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_convert2RetLinearE_sub</span> <span class="id" title="var">r</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">convert2RetLinearE_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">r</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">_</span>, <span class="id" title="var">Alt_Linear</span> <span class="id" title="var">_</span> <span class="id" title="var">L'</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_convert2RetLinearE_sub_branch1</span>; &lt;== <span class="id" title="var">PndRetE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_convert2RetLinearE_sub_branch2</span>; &lt;== <span class="id" title="var">PndRetE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">r</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2RetLinearE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_findRuleWithLc</span> <span class="id" title="var">L</span> (<span class="id" title="var">Ret</span> <span class="id" title="var">s</span>) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_map</span> <span class="id" title="var">_</span> (<span class="id" title="var">cost_convert2RetLinearE_sub</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">findRuleWithLc</span> <span class="id" title="var">L</span> (<span class="id" title="var">Ret</span> <span class="id" title="var">s</span>)).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">convert2RetLinearE'</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">c</span> = <span class="id" title="var">cost_convert2RetLinearE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">convert2RetLinearE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> !} <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">rs</span> &lt;- <span class="id" title="var">findRuleWithLc'</span> <span class="id" title="var">L</span> (<span class="id" title="var">Ret</span> <span class="id" title="var">s</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">map'</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> (<span class="id" title="var">convert2RetLinearE_sub'</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span>) <span class="id" title="var">rs</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">out</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Next</span> <span class="id" title="keyword">Obligation</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">split</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">cost_convert2RetLinearE</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">convert2RetLinearE</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">convert2RetMatchE</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">convert2RetMatchE_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">L1</span> <span class="id" title="var">s</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">_</span>, <span class="id" title="var">Alt_Match</span> <span class="id" title="var">a</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">L'</span>) ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">MatRetE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">s</span> <span class="id" title="var">L'</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ (<span class="id" title="var">PndRetE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2RetMatchE_sub_branch1</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2RetMatchE_sub_branch2</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_convert2RetMatchE_sub_branch1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_convert2RetMatchE_sub_branch2</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2RetMatchE_sub</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">_</span>, <span class="id" title="var">Alt_Linear</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_convert2RetMatchE_sub_branch1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_convert2RetMatchE_sub_branch2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">convert2RetMatchE_sub'</span> <span class="id" title="var">L</span> <span class="id" title="var">L1</span> <span class="id" title="var">s</span> (<span class="id" title="var">r</span>:<span class="id" title="var">rule</span>) <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_convert2RetMatchE_sub</span> <span class="id" title="var">r</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">convert2RetMatchE_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">L1</span> <span class="id" title="var">s</span> <span class="id" title="var">r</span> !}<br/>
+&nbsp;&nbsp;:= <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">as</span> <span class="id" title="var">r'</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">r</span>=<span class="id" title="var">r'</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_convert2RetMatchE_sub</span> <span class="id" title="var">r</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">convert2RetMatchE_sub</span> <span class="id" title="var">L</span> <span class="id" title="var">L1</span> <span class="id" title="var">s</span> <span class="id" title="var">r</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">_</span>, <span class="id" title="var">Alt_Match</span> <span class="id" title="var">a</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">L'</span>) ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_convert2RetMatchE_sub_branch1</span>; <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;== (<span class="id" title="var">MatRetE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">s</span> <span class="id" title="var">L'</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_convert2RetMatchE_sub_branch2</span>; <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;== (<span class="id" title="var">PndRetE</span> <span class="id" title="var">L</span> <span class="id" title="var">s</span> <span class="id" title="var">L</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">r</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_convert2RetMatchE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">s</span> := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_findRuleWithMb</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">s</span> +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_map</span> <span class="id" title="var">_</span> (<span class="id" title="var">cost_convert2RetMatchE_sub</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">findRuleWithMb</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">s</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">convert2RetMatchE'</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">s</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">c</span> = <span class="id" title="var">cost_convert2RetMatchE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">s</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">convert2RetMatchE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">s</span> !} <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">rs</span> &lt;- <span class="id" title="var">findRuleWithMb'</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> (<span class="id" title="var">s</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">map'</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> (<span class="id" title="var">convert2RetMatchE_sub'</span> <span class="id" title="var">L</span> <span class="id" title="var">L1</span> <span class="id" title="var">s</span>) <span class="id" title="var">rs</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">out</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Next</span> <span class="id" title="keyword">Obligation</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">split</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">cost_convert2RetMatchE</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">convert2RetMatchE</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">e2PlainE</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_e2PlainE</span> <span class="id" title="var">e'</span> <span class="id" title="var">s</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_endE</span> + <span class="id" title="var">cost_convert2PlainE</span> (<span class="id" title="var">endE</span> <span class="id" title="var">e'</span>) <span class="id" title="var">s</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">e2PlainE'</span> <span class="id" title="var">e'</span> <span class="id" title="var">s</span> <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_e2PlainE</span> <span class="id" title="var">e'</span> <span class="id" title="var">s</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">e2PlainE</span> <span class="id" title="var">e'</span> <span class="id" title="var">s</span> !}<br/>
+&nbsp;&nbsp;:= <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e</span> &lt;- <span class="id" title="var">_endE</span> <span class="id" title="var">e'</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">convert2PlainE'</span> <span class="id" title="var">e</span> <span class="id" title="var">s</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">out</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Next</span> <span class="id" title="keyword">Obligation</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">cost_e2PlainE</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">split</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">e2PlainE</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">e2CallLinearE</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_e2CallLinearE</span> <span class="id" title="var">e'</span> <span class="id" title="var">s</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_endE</span> + <span class="id" title="var">cost_convert2CallLinearE</span> (<span class="id" title="var">endE</span> <span class="id" title="var">e'</span>) <span class="id" title="var">s</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">e2CallLinearE'</span> <span class="id" title="var">e'</span> <span class="id" title="var">s</span> <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_e2CallLinearE</span> <span class="id" title="var">e'</span> <span class="id" title="var">s</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">e2CallLinearE</span> <span class="id" title="var">e'</span> <span class="id" title="var">s</span> !}<br/>
+&nbsp;&nbsp;:= <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e</span> &lt;- <span class="id" title="var">_endE</span> <span class="id" title="var">e'</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">convert2CallLinearE'</span> <span class="id" title="var">e</span> <span class="id" title="var">s</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">out</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Next</span> <span class="id" title="keyword">Obligation</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">cost_e2CallLinearE</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">split</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">e2CallLinearE</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">e2CallMatchE</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_e2CallMatchE</span> <span class="id" title="var">e'</span> <span class="id" title="var">s</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_endE</span> + <span class="id" title="var">cost_convert2CallMatchE</span> (<span class="id" title="var">endE</span> <span class="id" title="var">e'</span>) <span class="id" title="var">s</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">e2CallMatchE'</span> <span class="id" title="var">e'</span> <span class="id" title="var">s</span> <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_e2CallMatchE</span> <span class="id" title="var">e'</span> <span class="id" title="var">s</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">e2CallMatchE</span> <span class="id" title="var">e'</span> <span class="id" title="var">s</span> !}<br/>
+&nbsp;&nbsp;:= <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e</span> &lt;- <span class="id" title="var">_endE</span> <span class="id" title="var">e'</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">convert2CallMatchE'</span> <span class="id" title="var">e</span> <span class="id" title="var">s</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">out</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Next</span> <span class="id" title="keyword">Obligation</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">cost_e2CallMatchE</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">split</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">e2CallMatchE</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">e2RetLinearE</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_e2RetLinearE</span> <span class="id" title="var">e'</span> <span class="id" title="var">s</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_endE</span> + <span class="id" title="var">cost_convert2RetLinearE</span> (<span class="id" title="var">endE</span> <span class="id" title="var">e'</span>) <span class="id" title="var">s</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">e2RetLinearE'</span> <span class="id" title="var">e'</span> <span class="id" title="var">s</span> <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_e2RetLinearE</span> <span class="id" title="var">e'</span> <span class="id" title="var">s</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">e2RetLinearE</span> <span class="id" title="var">e'</span> <span class="id" title="var">s</span> !}<br/>
+&nbsp;&nbsp;:= <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e</span> &lt;- <span class="id" title="var">_endE</span> <span class="id" title="var">e'</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">convert2RetLinearE'</span> <span class="id" title="var">e</span> <span class="id" title="var">s</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">out</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Next</span> <span class="id" title="keyword">Obligation</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">cost_e2RetLinearE</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">split</span>; <span class="id" title="tactic">auto</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">e2RetLinearE</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <span class="id" title="var">fold'</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_fold_branch1</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_fold_branch2</span> := 1.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_fold_branch1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Opaque</span> <span class="id" title="var">cost_fold_branch2</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">cost_fold</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{<span class="id" title="var">f</span>:<span class="id" title="var">A</span>→<span class="id" title="var">B</span>→<span class="id" title="var">A</span>} <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{<span class="id" title="var">cost_f</span>:<span class="id" title="var">A</span>→<span class="id" title="var">B</span>→<span class="id" title="var">nat</span>} <span class="id" title="var">l</span> <span class="id" title="var">a</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">nil</span> ⇒ <span class="id" title="var">cost_fold_branch1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">cons</span> <span class="id" title="var">b</span> <span class="id" title="var">t</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_f</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@<span class="id" title="var">cost_fold</span> <span class="id" title="var">f</span> <span class="id" title="var">cost_f</span> <span class="id" title="var">t</span> (<span class="id" title="var">f</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_fold_branch2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Program Fixpoint</span> <span class="id" title="var">fold'</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{<span class="id" title="var">f</span>:<span class="id" title="var">A</span>→<span class="id" title="var">B</span>→<span class="id" title="var">A</span>} <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{<span class="id" title="var">cost_f</span>:<span class="id" title="var">A</span>→<span class="id" title="var">B</span>→<span class="id" title="var">nat</span>}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">f'</span>:<span class="id" title="keyword">∀</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">A</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_f</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">f</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> !})<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">l</span> <span class="id" title="var">a</span><br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = @<span class="id" title="var">cost_fold</span> <span class="id" title="var">f</span> <span class="id" title="var">cost_f</span> <span class="id" title="var">l</span> <span class="id" title="var">a</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">fold_left</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span> <span class="id" title="var">a</span> !}<br/>
+&nbsp;&nbsp;:= <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">l</span> <span class="id" title="keyword">as</span> <span class="id" title="var">l'</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">l</span>=<span class="id" title="var">l'</span>)-&gt;<br/>
+&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = @<span class="id" title="var">cost_fold</span> <span class="id" title="var">f</span> <span class="id" title="var">cost_f</span> <span class="id" title="var">l</span> <span class="id" title="var">a</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">fold_left</span> <span class="id" title="var">f</span> <span class="id" title="var">l</span> <span class="id" title="var">a</span> !}<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">nil</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_fold_branch1</span>; &lt;== <span class="id" title="var">a</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">cons</span> <span class="id" title="var">b</span> <span class="id" title="var">t</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">fab</span> &lt;- <span class="id" title="var">f'</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- @<span class="id" title="var">fold'</span> <span class="id" title="var">f</span> <span class="id" title="var">cost_f</span> <span class="id" title="var">f'</span> <span class="id" title="var">t</span> <span class="id" title="var">fab</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_fold_branch2</span>; &lt;== <span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">l</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Next</span> <span class="id" title="keyword">Obligation</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span>; <span class="id" title="tactic">auto</span>. <span class="id" title="var">lia</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Qed</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">fold'</span>.<br/>
+
+<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

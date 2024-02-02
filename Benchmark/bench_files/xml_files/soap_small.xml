@@ -1,0 +1,1008 @@
+<?xml version='1.0' ?>
+<s:Envelope
+  xmlns:s='urn:schemas-xmlsoap-org:soap.v1'
+  xmlns:xsi='http://www.w3.org/1999/XMLSchema/instance'
+>
+<s:Body>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>0</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid1' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid1'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>1</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid2' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid2'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>2</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid3' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid3'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>3</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid4' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid4'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>4</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid5' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid5'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>5</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid6' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid6'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>6</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid7' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid7'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>7</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid8' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid8'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>8</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid9' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid9'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>9</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid10' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid10'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>10</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid11' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid11'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>11</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid12' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid12'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>12</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid13' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid13'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>13</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid14' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid14'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>14</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid15' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid15'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>15</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid16' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid16'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>16</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid17' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid17'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>17</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid18' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid18'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>18</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid19' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid19'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>19</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid20' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid20'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>20</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid21' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid21'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>21</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid22' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid22'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>22</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid23' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid23'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>23</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid24' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid24'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>24</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid25' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid25'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>25</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid26' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid26'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>26</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid27' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid27'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>27</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid28' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid28'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>28</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid29' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid29'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>29</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid30' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid30'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>30</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid31' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid31'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>31</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid32' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid32'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>32</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid33' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid33'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>33</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid34' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid34'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>34</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid35' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid35'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>35</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid36' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid36'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>36</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid37' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid37'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>37</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid38' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid38'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>38</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid39' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid39'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>39</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid40' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid40'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>40</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid41' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid41'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>41</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid42' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid42'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>42</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid43' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid43'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>43</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid44' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid44'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>44</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid45' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid45'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>45</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid46' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid46'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>46</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid47' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid47'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>47</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid48' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid48'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>48</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid49' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid49'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>49</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid50' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid50'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>50</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid51' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid51'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>51</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid52' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid52'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>52</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid53' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid53'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>53</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid54' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid54'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>54</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid55' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid55'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>55</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid56' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid56'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>56</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid57' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid57'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>57</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid58' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid58'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>58</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid59' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid59'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>59</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid60' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid60'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>60</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid61' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid61'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>61</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid62' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid62'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>62</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid63' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid63'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>63</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid64' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid64'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>64</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid65' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid65'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>65</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid66' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid66'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>66</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid67' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid67'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>67</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid68' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid68'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>68</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid69' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid69'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>69</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid70' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid70'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>70</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid71' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid71'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>71</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid72' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid72'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>72</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid73' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid73'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>73</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid74' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid74'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>74</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid75' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid75'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>75</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid76' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid76'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>76</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid77' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid77'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>77</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid78' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid78'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>78</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid79' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid79'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>79</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid80' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid80'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>80</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid81' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid81'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>81</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid82' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid82'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>82</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid83' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid83'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>83</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid84' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid84'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>84</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid85' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid85'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>85</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid86' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid86'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>86</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid87' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid87'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>87</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid88' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid88'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>88</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid89' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid89'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>89</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid90' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid90'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>90</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid91' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid91'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>91</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid92' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid92'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>92</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid93' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid93'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>93</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid94' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid94'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>94</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid95' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid95'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>95</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid96' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid96'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>96</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid97' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid97'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>97</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid98' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid98'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>98</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next s:href='#sid99' />
+</ns2:ListEntry>
+<ns2:ListEntry xmlns:ns2='urn:develop-com:javaclass:roxtest' s:id='sid99'>
+<llong>3</llong>
+<sshort>1</sshort>
+<iint>99</iint>
+<ffloat>4.0</ffloat>
+<cchar>s</cchar>
+<ddouble>5.0</ddouble>
+<sstring>Hello </sstring>
+<next xsi:null='1' />
+</ns2:ListEntry>
+</s:Body>
+</s:Envelope>

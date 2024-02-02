@@ -1,0 +1,206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>GenForest</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library GenForest</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+This file first defines the parsing function <span class="inlinecode"><span class="id" title="var">p</span></span>, which reads a
+    string <span class="inlinecode"><span class="id" title="var">s</span></span>, runs the parser PDA, and generates a forest <span class="inlinecode"><span class="id" title="var">M</span></span>. The
+    relation <span class="inlinecode"><span class="id" title="var">Forest</span></span> <span class="inlinecode"><span class="id" title="var">w</span></span> <span class="inlinecode"><span class="id" title="var">T</span></span> <span class="inlinecode"><span class="id" title="var">M</span></span> is then defined based on <span class="inlinecode"><span class="id" title="var">p</span></span>, which
+    roughly means M=p(w). This file then verifies two properties for
+    the forest relation, namely <span class="inlinecode"><span class="id" title="var">PForest1</span></span> and <span class="inlinecode"><span class="id" title="var">PForest2</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Lists.List</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">ListNotations</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Extraction</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Arith</span> <span class="id" title="var">String</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Structures.Orders</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Ltac</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">MSets</span> <span class="id" title="var">MSets.MSetProperties</span> <span class="id" title="var">MSets.MSetEqProperties</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="var">Structures.OrderedTypeEx</span> <span class="id" title="var">Structures.OrdersFacts</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Classes.RelationClasses</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Unicode.Utf8_core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Misc</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Def</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ForwardSmallStep</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.Basic</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.vpg</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Lia</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">PreTimed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">LEN_WF</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The module <span class="inlinecode"><span class="id" title="var">Parser</span></span> accepts a VPG and declares the parsing function
+  <span class="inlinecode"><span class="id" title="var">p</span></span>. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Module</span> <span class="id" title="var">Parser</span> (<span class="id" title="var">G</span>:<span class="id" title="var">VPG</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">p_sym</span></span>: the pseudo-symbol used for constructing the initial state
+      <span class="inlinecode"><span class="id" title="var">m0</span></span>, which is defined below. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">p_sym</span> := ""%<span class="id" title="var">string</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">m0</span></span>: the initial parser PDA state is <span class="inlinecode">{<span class="id" title="var">None</span>,</span> <span class="inlinecode"><span class="id" title="var">L0</span></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="var">c0</span></span> <span class="inlinecode"><span class="id" title="var">L0</span>}</span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">m0</span> : <span class="id" title="var">ME</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">PlnCME</span> (<span class="id" title="var">vc_set.singleton</span> (<span class="id" title="var">None</span>, <span class="id" title="var">PlnE</span> <span class="id" title="var">L_0</span> <span class="id" title="var">p_sym</span> <span class="id" title="var">L_0</span>)).<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">p</span></span>: the one-step parsing function <span class="inlinecode"><span class="id" title="var">p</span></span> transfers from the current
+      configuration <span class="inlinecode">(<span class="id" title="var">m</span>,<span class="id" title="var">T</span>)</span> to the next configuration <span class="inlinecode">(<span class="id" title="var">m'</span>,<span class="id" title="var">T'</span>)</span> when
+      reading the symbol <span class="inlinecode"><span class="id" title="var">i</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">p</span> <span class="id" title="var">m</span> <span class="id" title="var">T</span> <span class="id" title="var">i</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">i</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Plain</span> <span class="id" title="var">s</span> ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">res</span> := <span class="id" title="var">m2PlainM</span> <span class="id" title="var">m</span> <span class="id" title="var">s</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">res</span>, <span class="id" title="var">T</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Call</span> <span class="id" title="var">s</span> ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">res</span> := <span class="id" title="var">m2CallM</span> <span class="id" title="var">m</span> <span class="id" title="var">s</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">res</span>, <span class="id" title="var">m</span>::<span class="id" title="var">T</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Ret</span> <span class="id" title="var">s</span> ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">T</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| [] ⇒ (<span class="id" title="var">m2RetM</span> <span class="id" title="var">m</span> <span class="id" title="var">None</span> <span class="id" title="var">s</span>, [])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">t</span>::<span class="id" title="var">T</span> ⇒ (<span class="id" title="var">m2RetM</span> <span class="id" title="var">m</span> (<span class="id" title="var">Some</span> <span class="id" title="var">t</span>) <span class="id" title="var">s</span>, <span class="id" title="var">T</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">Forest</span></span>: the relation <span class="inlinecode"><span class="id" title="var">Forest</span></span> <span class="inlinecode"><span class="id" title="var">M</span></span> <span class="inlinecode"><span class="id" title="var">T</span></span> <span class="inlinecode"><span class="id" title="var">w</span></span> means that the initial
+        configuration <span class="inlinecode">(<span class="id" title="var">m0</span>,[])</span> is transferred to the configuration
+        <span class="inlinecode">(<span class="id" title="var">M</span>,<span class="id" title="var">T</span>)</span> after reading the string <span class="inlinecode"><span class="id" title="var">w</span></span> 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Inductive</span> <span class="id" title="var">Forest</span> : (<span class="id" title="var">list</span> <span class="id" title="var">ME</span>) → (<span class="id" title="var">list</span> <span class="id" title="var">ME</span>) → (<span class="id" title="var">list</span> <span class="id" title="var">symbol</span>) → <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;| <span class="id" title="var">FInit</span>: <span class="id" title="var">Forest</span> [<span class="id" title="var">m0</span>] [] []<br/>
+&nbsp;&nbsp;| <span class="id" title="var">FInte</span> <span class="id" title="var">i</span> <span class="id" title="var">m</span> <span class="id" title="var">M</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> <span class="id" title="var">m'</span> <span class="id" title="var">T'</span>: <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Forest</span> (<span class="id" title="var">m</span>::<span class="id" title="var">M</span>) <span class="id" title="var">T</span> <span class="id" title="var">w</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ (<span class="id" title="var">m'</span>, <span class="id" title="var">T'</span>) = <span class="id" title="var">p</span> <span class="id" title="var">m</span> <span class="id" title="var">T</span> <span class="id" title="var">i</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">Forest</span> (<span class="id" title="var">m'</span>::<span class="id" title="var">m</span>::<span class="id" title="var">M</span>) <span class="id" title="var">T'</span> (<span class="id" title="var">w</span>++[<span class="id" title="var">i</span>]).<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">PForest1</span></span>: the first property <span class="inlinecode"><span class="id" title="var">PForest1</span></span> reveals the relation
+      between the forest <span class="inlinecode"><span class="id" title="var">Forest</span></span> <span class="inlinecode">(<span class="id" title="var">m</span>::<span class="id" title="var">M</span>)</span> <span class="inlinecode"><span class="id" title="var">T</span></span> <span class="inlinecode"><span class="id" title="var">w</span></span> and a VPG parse tree <span class="inlinecode"><span class="id" title="var">v</span></span> in
+      forward small-step relation <span class="inlinecode"><span class="id" title="var">Df</span></span> <span class="inlinecode"><span class="id" title="var">v</span></span> <span class="inlinecode"><span class="id" title="var">I</span></span> <span class="inlinecode"><span class="id" title="var">w</span></span>. The relation is two-fold:
+      (1) if the parse tree stack <span class="inlinecode"><span class="id" title="var">I</span></span> is empty then the forest stack <span class="inlinecode"><span class="id" title="var">T</span></span>
+      must also be empty, and the context in the last state <span class="inlinecode"><span class="id" title="var">m</span></span> must be
+      <span class="inlinecode"><span class="id" title="var">None</span></span>; (2) if the parse tree stack <span class="inlinecode"><span class="id" title="var">I</span></span> is nonempty, then the
+      forest stack <span class="inlinecode"><span class="id" title="var">T</span></span> must also be nonempty, and the context in the
+      last state <span class="inlinecode"><span class="id" title="var">m</span></span> must not be <span class="inlinecode"><span class="id" title="var">None</span></span>. The relation <span class="inlinecode"><span class="id" title="var">Dfx</span></span> is an
+      extension of the forward small-step relation <span class="inlinecode"><span class="id" title="var">Df</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">PForest1</span>: ∀ <span class="id" title="var">m</span> <span class="id" title="var">M</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>, <span class="id" title="var">Forest</span> (<span class="id" title="var">m</span>::<span class="id" title="var">M</span>) <span class="id" title="var">T</span> <span class="id" title="var">w</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">v</span> <span class="id" title="var">e</span> <span class="id" title="var">I</span> <span class="id" title="var">Le</span> <span class="id" title="var">v1</span> <span class="id" title="var">v2</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Dfx</span> (<span class="id" title="var">v</span>++[<span class="id" title="var">e</span>]) <span class="id" title="var">I</span> <span class="id" title="var">w</span> <span class="id" title="var">v1</span> <span class="id" title="var">v2</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">VBeginWith</span> (<span class="id" title="var">v</span>++[<span class="id" title="var">e</span>]) <span class="id" title="var">L_0</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">VEndWith</span> [<span class="id" title="var">e</span>] <span class="id" title="var">Le</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">syncT</span> <span class="id" title="var">I</span> <span class="id" title="var">T</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">r</span>, <span class="id" title="var">inRM</span> (<span class="id" title="var">r</span>,<span class="id" title="var">e</span>) <span class="id" title="var">m</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">I</span>=[] ∧ <span class="id" title="var">T</span>=[] ∧ <span class="id" title="var">r</span>=<span class="id" title="var">None</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∨<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">I'</span> <span class="id" title="var">i</span>, <span class="id" title="var">I</span> = <span class="id" title="var">i</span>::<span class="id" title="var">I'</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">r</span> = <span class="id" title="var">Some</span> <span class="id" title="var">i</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">t</span> <span class="id" title="var">T'</span>, <span class="id" title="var">T</span>=<span class="id" title="var">t</span>::<span class="id" title="var">T'</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">M'</span>, <span class="id" title="var">Forest</span> (<span class="id" title="var">t</span>::<span class="id" title="var">M'</span>) <span class="id" title="var">T'</span> <span class="id" title="var">w1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">PForest2</span></span>: the second property <span class="inlinecode"><span class="id" title="var">PForest2</span></span> is in the other
+      direction of the first property <span class="inlinecode"><span class="id" title="var">PForest1</span></span>: (1) if the context in
+      the last state of the forest is <span class="inlinecode"><span class="id" title="var">None</span></span>, then both stacks <span class="inlinecode"><span class="id" title="var">I</span></span> and
+      <span class="inlinecode"><span class="id" title="var">T</span></span> must be empty; (2) otherwise the stacks must be nonempty, and
+      the context should be the top of the parse tree stack for some
+      parse tree. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">PForest2</span>: ∀ <span class="id" title="var">w</span> <span class="id" title="var">m</span> <span class="id" title="var">M</span> <span class="id" title="var">T</span>, <span class="id" title="var">Forest</span> (<span class="id" title="var">m</span>::<span class="id" title="var">M</span>) <span class="id" title="var">T</span> <span class="id" title="var">w</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">w</span> != [] →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">r</span> <span class="id" title="var">e</span>, <span class="id" title="var">inRM</span> (<span class="id" title="var">r</span>, <span class="id" title="var">e</span>) <span class="id" title="var">m</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">r</span>=<span class="id" title="var">None</span> → ∃ <span class="id" title="var">v</span>, <span class="id" title="var">Df</span> (<span class="id" title="var">v</span>++[<span class="id" title="var">e</span>]) [] <span class="id" title="var">w</span> ∧ <span class="id" title="var">VBeginWith</span> (<span class="id" title="var">v</span>++[<span class="id" title="var">e</span>]) <span class="id" title="var">L_0</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">ea</span>, <span class="id" title="var">r</span>=<span class="id" title="var">Some</span> <span class="id" title="var">ea</span> → ∃ <span class="id" title="var">v</span> <span class="id" title="var">T'</span>, <span class="id" title="var">Df</span> (<span class="id" title="var">v</span>++[<span class="id" title="var">e</span>]) (<span class="id" title="var">ea</span>::<span class="id" title="var">T'</span>) <span class="id" title="var">w</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∧ <span class="id" title="var">VBeginWith</span> (<span class="id" title="var">v</span>++[<span class="id" title="var">e</span>]) <span class="id" title="var">L_0</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Parser</span>.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

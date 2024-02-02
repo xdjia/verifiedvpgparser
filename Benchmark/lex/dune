@@ -1,0 +1,25 @@
+(env
+ (dev
+  (flags
+   (:standard
+    -w
+    -unused-var-strict
+    -w
+    -unused-value-declaration
+    -w
+    -unused-var)))
+ (release
+  (ocamlopt_flags :standard -O3 -noassert -w -A)))
+
+(executables
+ (names
+  write_tcfg_lexer
+  write_json_lexer
+  write_xml_lexer)
+ (modules
+  write_tcfg_lexer
+  write_json_lexer
+  write_xml_lexer)
+ (libraries TCFGParser)
+ (preprocess
+  (pps sedlex.ppx ppx_deriving.show ppx_jane)))

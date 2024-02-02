@@ -1,0 +1,511 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>Transducer</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library Transducer</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+This file provides the extraction functions and bridges the
+    properties of the relation <span class="inlinecode"><span class="id" title="var">Forest</span></span> and the extraction functions. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Lists.List</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">ListNotations</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Arith</span> <span class="id" title="var">String</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Structures.Orders</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Ltac</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">MSets</span> <span class="id" title="var">MSets.MSetProperties</span> <span class="id" title="var">MSets.MSetEqProperties</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="var">Structures.OrderedTypeEx</span> <span class="id" title="var">Structures.OrdersFacts</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Classes.RelationClasses</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Program.Equality</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Init.Wf</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Lia</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ForwardSmallStep</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">BackwardSmallStep</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Unicode.Utf8_core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="var">Def</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Misc</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.Basic</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.vpg</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Lia</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Arith.PeanoNat</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Program</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Monad</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">TimedSets</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">Transducer</span>(<span class="id" title="var">G</span>:<span class="id" title="var">Def.VPG</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">TimedSets</span> := <span class="id" title="var">TimedSets</span>(<span class="id" title="var">G</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">TimedSets.Parser.PreTimed.Dbx.BackwardSmallStep.ForwardSmallStep.Tac.Tacs</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Def.DEF</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">TimedSets.Parser.PreTimed.Dbx.BackwardSmallStep.ForwardSmallStep.Def.DB</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">TimedSets.Parser.PreTimed.Dbx.BackwardSmallStep.ForwardSmallStep.Def.DF</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">TimedSets.Parser.PreTimed.Dbx.BackwardSmallStep</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">TimedSets.Parser</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">TimedSets.Parser.PreTimed.Dbx.BackwardSmallStep.ForwardSmallStep.DFX</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">TimedSets.Parser.PreTimed.Dbx</span>.<br/>
+
+<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">PreTransducer</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_invalid_df_T</span></span>: if the top of the forest stack is a pending
+      rule, then all rules on the stack are pending. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_invalid_df_T</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">L'</span> <span class="id" title="var">a'</span> <span class="id" title="var">L1'</span> <span class="id" title="var">b'</span> <span class="id" title="var">L2'</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Df</span> <span class="id" title="var">v</span> (<span class="id" title="var">PndCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span>::<span class="id" title="var">MatCalE</span> <span class="id" title="var">L'</span> <span class="id" title="var">a'</span> <span class="id" title="var">L1'</span> <span class="id" title="var">b'</span> <span class="id" title="var">L2'</span>::<span class="id" title="var">T</span>) <span class="id" title="var">w</span> → <span class="id" title="var">False</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_invalid_mb</span></span>: if a parse tree in the forward small-step
+        derivation ends with a pending rule, then all rules on the stack
+        are pending. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_invalid_mb</span>:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">x</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span> <span class="id" title="var">L1'</span> <span class="id" title="var">b'</span> <span class="id" title="var">L2'</span> <span class="id" title="var">_T</span> <span class="id" title="var">_w</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Df</span> (<span class="id" title="var">x</span> ++ [<span class="id" title="var">Retv</span> (<span class="id" title="var">PndRetE</span> <span class="id" title="var">L1'</span> <span class="id" title="var">b'</span> <span class="id" title="var">L2'</span>)]) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">MatCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span> :: <span class="id" title="var">_T</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">_w</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">False</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">End</span> <span class="id" title="var">PreTransducer</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">Transducer2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">PreTransducer</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">f_b</span></span>: the one-step extraction function <span class="inlinecode"><span class="id" title="var">f_b</span>:(<span class="id" title="var">m</span>,<span class="id" title="var">V</span>)</span> <span class="inlinecode">↦</span> <span class="inlinecode"><span class="id" title="var">V'</span></span> uses
+      rules in <span class="inlinecode"><span class="id" title="var">m</span></span> to extend partial parse trees in <span class="inlinecode"><span class="id" title="var">V</span></span>, resulting in a
+      new set <span class="inlinecode"><span class="id" title="var">V'</span></span> of partial pares trees. 
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Load</span> "f_b.v".<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_f_b</span></span>: given <span class="inlinecode"><span class="id" title="var">V'</span>=<span class="id" title="var">f_b</span></span> <span class="inlinecode"><span class="id" title="var">m</span></span> <span class="inlinecode"><span class="id" title="var">V</span></span>, this lemma shows that if parse
+        trees in <span class="inlinecode"><span class="id" title="var">V</span></span> satisfies the backward small-step relation <span class="inlinecode"><span class="id" title="var">Db</span></span>,
+        then parse trees in <span class="inlinecode"><span class="id" title="var">V'</span></span> also satisfies <span class="inlinecode"><span class="id" title="var">Db</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_f_b</span>: ∀ <span class="id" title="var">m</span> <span class="id" title="var">V</span> <span class="id" title="var">i</span> <span class="id" title="var">w</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∀ <span class="id" title="var">v</span> <span class="id" title="var">T</span>, <span class="id" title="var">In</span> (<span class="id" title="var">v</span>,<span class="id" title="var">T</span>) <span class="id" title="var">V</span> → <span class="id" title="var">Db</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" title="var">_M</span> <span class="id" title="var">_T</span> <span class="id" title="var">_w</span>, <span class="id" title="var">_w</span> != [] ∧ <span class="id" title="var">Forest</span> (<span class="id" title="var">m</span>::<span class="id" title="var">_M</span>) <span class="id" title="var">_T</span> <span class="id" title="var">_w</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∀ <span class="id" title="var">r</span> <span class="id" title="var">e</span>, <span class="id" title="var">inRM</span> (<span class="id" title="var">r</span>,<span class="id" title="var">e</span>) <span class="id" title="var">m</span> → <span class="id" title="var">getSymVE</span> <span class="id" title="var">e</span> = <span class="id" title="var">i</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">v'</span> <span class="id" title="var">T'</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">In</span> (<span class="id" title="var">v'</span>,<span class="id" title="var">T'</span>) (<span class="id" title="var">f_b</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">Db</span> <span class="id" title="var">v'</span> <span class="id" title="var">T'</span> (<span class="id" title="var">i</span>::<span class="id" title="var">w</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">pg2</span></span>: this lemma shows that given <span class="inlinecode"><span class="id" title="var">V'</span>=<span class="id" title="var">f_b</span></span> <span class="inlinecode"><span class="id" title="var">m</span></span> <span class="inlinecode"><span class="id" title="var">V</span></span>, each parse tree
+        in <span class="inlinecode"><span class="id" title="var">v</span></span> is extended from a parse tree in <span class="inlinecode"><span class="id" title="var">V</span></span>, with some
+        additional details. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">pg2</span>:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">m</span> <span class="id" title="var">V</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span>, <span class="id" title="var">In</span> (<span class="id" title="var">v</span>,<span class="id" title="var">T</span>) (<span class="id" title="var">f_b</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" title="var">_M</span> <span class="id" title="var">_T</span> <span class="id" title="var">_w</span>, <span class="id" title="var">_w</span> != [] ∧ <span class="id" title="var">Forest</span> (<span class="id" title="var">m</span>::<span class="id" title="var">_M</span>) <span class="id" title="var">_T</span> <span class="id" title="var">_w</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">v'</span> <span class="id" title="var">I'</span>, <span class="id" title="var">In</span> (<span class="id" title="var">v'</span>, <span class="id" title="var">I'</span>) <span class="id" title="var">V</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">e</span>, <span class="id" title="var">v</span>=<span class="id" title="var">e</span>::<span class="id" title="var">v'</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" title="var">r</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">inRM</span> (<span class="id" title="var">r</span>,<span class="id" title="var">e</span>) <span class="id" title="var">m</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">I'</span>=[] ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">r</span> = <span class="id" title="var">None</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) ∨<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">L1</span> <span class="id" title="var">a</span> <span class="id" title="var">L2</span>, <span class="id" title="var">r</span>=<span class="id" title="var">Some</span> (<span class="id" title="var">PndCalE</span> <span class="id" title="var">L1</span> <span class="id" title="var">a</span> <span class="id" title="var">L2</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) ∨<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">L1'</span> <span class="id" title="var">b</span> <span class="id" title="var">L2'</span> <span class="id" title="var">I''</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">I'</span>=<span class="id" title="var">PndRetE</span> <span class="id" title="var">L1'</span> <span class="id" title="var">b</span> <span class="id" title="var">L2'</span>::<span class="id" title="var">I''</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">r</span>=<span class="id" title="var">None</span> ∨ ∃ <span class="id" title="var">L1</span> <span class="id" title="var">a</span> <span class="id" title="var">L2</span>, <span class="id" title="var">r</span>=<span class="id" title="var">Some</span> (<span class="id" title="var">PndCalE</span> <span class="id" title="var">L1</span> <span class="id" title="var">a</span> <span class="id" title="var">L2</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) ∨<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">L1</span> <span class="id" title="var">a</span> <span class="id" title="var">L2</span> <span class="id" title="var">b</span> <span class="id" title="var">L3</span> <span class="id" title="var">I''</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">I'</span>=<span class="id" title="var">MatRetE</span> <span class="id" title="var">L1</span> <span class="id" title="var">a</span> <span class="id" title="var">L2</span> <span class="id" title="var">b</span> <span class="id" title="var">L3</span>::<span class="id" title="var">I''</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">r</span>=<span class="id" title="var">Some</span> (<span class="id" title="var">MatCalE</span> <span class="id" title="var">L1</span> <span class="id" title="var">a</span> <span class="id" title="var">L2</span> <span class="id" title="var">b</span> <span class="id" title="var">L3</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">f_init</span></span>: the initialization extraction function <span class="inlinecode"><span class="id" title="var">f_init</span></span> builds
+        the initial partial parse trees from the last state in a forest.
+    
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">f_init</span> (<span class="id" title="var">m</span>:<span class="id" title="var">ME</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="var">list</span> (<span class="id" title="var">list</span> <span class="id" title="var">VE</span> × <span class="id" title="var">list</span> <span class="id" title="var">RetEdge</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">m</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">PlnCME</span> <span class="id" title="var">m</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">m</span> := <span class="id" title="var">vc_set.elements</span> <span class="id" title="var">m</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">f</span> (<span class="id" title="var">v</span>:<span class="id" title="var">option</span> <span class="id" title="var">CalEdge</span> × <span class="id" title="var">PlnEdge</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">r</span>, <span class="id" title="var">e</span>) := <span class="id" title="var">v</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">None</span> ⇒ <span class="id" title="var">goEps</span> (<span class="id" title="var">Plnv</span> <span class="id" title="var">e</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Some</span> (<span class="id" title="var">PndCalE</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) ⇒ <span class="id" title="var">goEps</span> (<span class="id" title="var">Plnv</span> <span class="id" title="var">e</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">g</span> (<span class="id" title="var">v</span>:<span class="id" title="var">option</span> <span class="id" title="var">CalEdge</span> × <span class="id" title="var">PlnEdge</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">r</span>, <span class="id" title="var">e</span>) := <span class="id" title="var">v</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">es</span> := (<span class="id" title="var">filter_map</span> <span class="id" title="var">m</span> <span class="id" title="var">f</span> <span class="id" title="var">g</span>) <span class="id" title="tactic">in</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">map</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">e</span> ⇒ ([<span class="id" title="var">Plnv</span> <span class="id" title="var">e</span>],[]))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">PreTimed.nodup</span> <span class="id" title="var">ec_inlist</span> <span class="id" title="var">es</span> )<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">CalCME</span> <span class="id" title="var">m</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">m</span> := <span class="id" title="var">va_set.elements</span> <span class="id" title="var">m</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">f</span> (<span class="id" title="var">v</span>:<span class="id" title="var">option</span> <span class="id" title="var">CalEdge</span> × <span class="id" title="var">CalEdge</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">r</span>, <span class="id" title="var">e</span>) := <span class="id" title="var">v</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">None</span> ⇒ <span class="id" title="var">goEps</span> (<span class="id" title="var">Calv</span> <span class="id" title="var">e</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Some</span> (<span class="id" title="var">PndCalE</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) ⇒ <span class="id" title="var">goEps</span> (<span class="id" title="var">Calv</span> <span class="id" title="var">e</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">g</span> (<span class="id" title="var">v</span>:<span class="id" title="var">option</span> <span class="id" title="var">CalEdge</span> × <span class="id" title="var">CalEdge</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">r</span>, <span class="id" title="var">e</span>) := <span class="id" title="var">v</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">map</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">e</span> ⇒ ([<span class="id" title="var">Calv</span> <span class="id" title="var">e</span>],[]))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">PreTimed.nodup</span> <span class="id" title="var">ea_inlist</span> (<span class="id" title="var">filter_map</span> <span class="id" title="var">m</span> <span class="id" title="var">f</span> <span class="id" title="var">g</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">RetCME</span> <span class="id" title="var">m</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">m</span> := <span class="id" title="var">vb_set.elements</span> <span class="id" title="var">m</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">f</span> (<span class="id" title="var">v</span>:<span class="id" title="var">option</span> <span class="id" title="var">CalEdge</span> × <span class="id" title="var">RetEdge</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">r</span>, <span class="id" title="var">e</span>) := <span class="id" title="var">v</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">r</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">None</span> ⇒ <span class="id" title="var">goEps</span> (<span class="id" title="var">Retv</span> <span class="id" title="var">e</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Some</span> (<span class="id" title="var">PndCalE</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) ⇒ <span class="id" title="var">goEps</span> (<span class="id" title="var">Retv</span> <span class="id" title="var">e</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒ <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">g</span> (<span class="id" title="var">v</span>:<span class="id" title="var">option</span> <span class="id" title="var">CalEdge</span> × <span class="id" title="var">RetEdge</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">r</span>, <span class="id" title="var">e</span>) := <span class="id" title="var">v</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">map</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">e</span> ⇒ ([<span class="id" title="var">Retv</span> <span class="id" title="var">e</span>],[<span class="id" title="var">e</span>]))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">PreTimed.nodup</span> <span class="id" title="var">eb_inlist</span> (<span class="id" title="var">filter_map</span> <span class="id" title="var">m</span> <span class="id" title="var">f</span> <span class="id" title="var">g</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_f_init</span></span>: the lemmas shows that the parse trees built by
+       <span class="inlinecode"><span class="id" title="var">f_init</span></span> satisfies the backward small-step relation. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_f_init</span> : ∀ <span class="id" title="var">m</span> <span class="id" title="var">M</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> <span class="id" title="var">i</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Forest</span> (<span class="id" title="var">m</span>::<span class="id" title="var">M</span>) <span class="id" title="var">T</span> (<span class="id" title="var">w</span>++[<span class="id" title="var">i</span>]) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">v</span> <span class="id" title="var">I</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">In</span> (<span class="id" title="var">v</span>,<span class="id" title="var">I</span>) (<span class="id" title="var">f_init</span> <span class="id" title="var">m</span>) ↔<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Db</span> <span class="id" title="var">v</span> <span class="id" title="var">I</span> [<span class="id" title="var">i</span>] ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">e</span>, <span class="id" title="var">v</span>=[<span class="id" title="var">e</span>] ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">inRM</span> (<span class="id" title="var">None</span>,<span class="id" title="var">e</span>) <span class="id" title="var">m</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∨ ∃ <span class="id" title="var">L1</span> <span class="id" title="var">a</span> <span class="id" title="var">C</span>, <span class="id" title="var">inRM</span> (<span class="id" title="var">Some</span> (<span class="id" title="var">PndCalE</span> <span class="id" title="var">L1</span> <span class="id" title="var">a</span> <span class="id" title="var">C</span>),<span class="id" title="var">e</span>) <span class="id" title="var">m</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="keyword">Extract</span></span>: the relation <span class="inlinecode"><span class="id" title="keyword">Extract</span></span> formalizes the behaviour of
+        the extraction function <span class="inlinecode"><span class="id" title="var">f_b</span></span>. <span class="inlinecode"><span class="id" title="keyword">Extract</span></span> <span class="inlinecode"><span class="id" title="var">m</span></span> <span class="inlinecode"><span class="id" title="var">M</span></span> <span class="inlinecode"><span class="id" title="var">V</span></span> <span class="inlinecode">(<span class="id" title="var">w</span>++[<span class="id" title="var">i</span>])</span> <span class="inlinecode"><span class="id" title="var">w'</span></span> means
+        that we have extracted a set of partial parse trees <span class="inlinecode"><span class="id" title="var">V</span></span>, and the
+        rest forest is <span class="inlinecode"><span class="id" title="var">m</span>::<span class="id" title="var">M</span></span>, which is the forest of the string
+        (w++<span class="inlinecode"><span class="id" title="var">i</span></span>), and <span class="inlinecode"><span class="id" title="var">w</span>++[<span class="id" title="var">i</span>]++<span class="id" title="var">w'</span></span> is the input string. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Inductive</span> <span class="id" title="keyword">Extract</span> : <span class="id" title="var">list</span> <span class="id" title="var">ME</span> → <span class="id" title="var">list</span> (<span class="id" title="var">list</span> <span class="id" title="var">VE</span> × <span class="id" title="var">list</span> <span class="id" title="var">RetEdge</span>) → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">list</span> <span class="id" title="var">symbol</span> → <span class="id" title="var">list</span> <span class="id" title="var">symbol</span> → <span class="id" title="keyword">Prop</span> := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">EInit</span> <span class="id" title="var">m</span> <span class="id" title="var">M</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> <span class="id" title="var">i</span> : <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Forest</span> (<span class="id" title="var">m</span>::<span class="id" title="var">M</span>) <span class="id" title="var">T</span> (<span class="id" title="var">w</span>++[<span class="id" title="var">i</span>]) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="keyword">Extract</span> <span class="id" title="var">M</span> (<span class="id" title="var">f_init</span> <span class="id" title="var">m</span>) <span class="id" title="var">w</span> [<span class="id" title="var">i</span>]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">EInte</span> <span class="id" title="var">m</span> <span class="id" title="var">M</span> <span class="id" title="var">V</span> <span class="id" title="var">w1</span> <span class="id" title="var">i</span> <span class="id" title="var">w2</span>: <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Extract</span> (<span class="id" title="var">m</span>::<span class="id" title="var">M</span>) <span class="id" title="var">V</span> (<span class="id" title="var">w1</span>++[<span class="id" title="var">i</span>]) <span class="id" title="var">w2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="keyword">Extract</span> <span class="id" title="var">M</span> (<span class="id" title="var">f_b</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span>) <span class="id" title="var">w1</span> (<span class="id" title="var">i</span>::<span class="id" title="var">w2</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_forest</span></span>: intuitively, a state is a compression of a set of
+      parse trees. This lemma formalizes this intuition and shows that
+      each rule in the state <span class="inlinecode"><span class="id" title="var">m</span></span> must be the last rule of some parse
+      trees in the forward small-step derivation <span class="inlinecode"><span class="id" title="var">Df</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_forest</span> : ∀ <span class="id" title="var">m</span> <span class="id" title="var">M</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Forest</span> (<span class="id" title="var">m</span>::<span class="id" title="var">M</span>) <span class="id" title="var">T</span> <span class="id" title="var">w</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">w</span>!=[] <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ ∀ <span class="id" title="var">r</span> <span class="id" title="var">e</span>, <span class="id" title="var">inRM</span> (<span class="id" title="var">r</span>, <span class="id" title="var">e</span>) <span class="id" title="var">m</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ ∃ <span class="id" title="var">v1</span> <span class="id" title="var">T1</span>, <span class="id" title="var">Df</span> (<span class="id" title="var">v1</span>++[<span class="id" title="var">e</span>]) <span class="id" title="var">T1</span> <span class="id" title="var">w</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∧ <span class="id" title="var">VBeginWith</span> (<span class="id" title="var">v1</span>++[<span class="id" title="var">e</span>]) <span class="id" title="var">L_0</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∧ (<span class="id" title="var">r</span>=<span class="id" title="var">None</span> → <span class="id" title="var">T1</span>=[])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∧ (∀ <span class="id" title="var">i</span>, <span class="id" title="var">r</span>=<span class="id" title="var">Some</span> <span class="id" title="var">i</span> → ∃ <span class="id" title="var">T1'</span>, <span class="id" title="var">T1</span>=<span class="id" title="var">i</span>::<span class="id" title="var">T1'</span>).<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">pf1</span></span>: this lemma shows that if we extract a set of parse trees
+        <span class="inlinecode"><span class="id" title="var">V</span></span>, then each rule in <span class="inlinecode"><span class="id" title="var">V</span></span> satisfies the forward small-step
+        derivation. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">pf1</span>:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">m</span> <span class="id" title="var">M</span> <span class="id" title="var">V</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Extract</span> (<span class="id" title="var">m</span> :: <span class="id" title="var">M</span>) <span class="id" title="var">V</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">w1</span> != [] →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">e</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">inRM</span> (<span class="id" title="var">None</span>,<span class="id" title="var">e</span>) <span class="id" title="var">m</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">v1e</span>, <span class="id" title="var">Df</span> (<span class="id" title="var">v1e</span>++[<span class="id" title="var">e</span>]) [] <span class="id" title="var">w1</span> ∧ <span class="id" title="var">VBeginWith</span> (<span class="id" title="var">v1e</span>++[<span class="id" title="var">e</span>]) <span class="id" title="var">L_0</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">r</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">inRM</span> (<span class="id" title="var">Some</span> <span class="id" title="var">r</span>,<span class="id" title="var">e</span>) <span class="id" title="var">m</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">v1e</span> <span class="id" title="var">T1e</span>, <span class="id" title="var">Df</span> (<span class="id" title="var">v1e</span>++[<span class="id" title="var">e</span>]) (<span class="id" title="var">r</span>::<span class="id" title="var">T1e</span>) <span class="id" title="var">w1</span> ∧ <span class="id" title="var">VBeginWith</span> (<span class="id" title="var">v1e</span>++[<span class="id" title="var">e</span>]) <span class="id" title="var">L_0</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">pf3</span></span>: this lemma shows that when we extract a set of parse
+        trees from part of a forest and the rest forest is <span class="inlinecode"><span class="id" title="var">m</span>::<span class="id" title="var">M</span></span> of the
+        string <span class="inlinecode"><span class="id" title="var">w1</span></span>, then the last rule of each parse tree of <span class="inlinecode"><span class="id" title="var">w1</span></span> must
+        reside in <span class="inlinecode"><span class="id" title="var">m</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">pf3</span>: <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">m</span> <span class="id" title="var">M</span> <span class="id" title="var">V</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Extract</span> (<span class="id" title="var">m</span> :: <span class="id" title="var">M</span>) <span class="id" title="var">V</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">v</span> <span class="id" title="var">T</span>, <span class="id" title="var">Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w1</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">VBeginWith</span> <span class="id" title="var">v</span> <span class="id" title="var">L_0</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">e</span> <span class="id" title="var">v'</span> <span class="id" title="var">r</span>, <span class="id" title="var">v</span>=<span class="id" title="var">v'</span>++[<span class="id" title="var">e</span>] ∧ <span class="id" title="var">inRM</span> (<span class="id" title="var">r</span>,<span class="id" title="var">e</span>) <span class="id" title="var">m</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_Db_uniqueT</span></span>: this lemmas shows that each backward small-step
+        relation has a unique stack. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_Db_uniqueT</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">T1</span> <span class="id" title="var">T2</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Db</span> <span class="id" title="var">v</span> <span class="id" title="var">T1</span> <span class="id" title="var">w1</span> → <span class="id" title="var">Db</span> <span class="id" title="var">v</span> <span class="id" title="var">T2</span> <span class="id" title="var">w2</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">T1</span>=<span class="id" title="var">T2</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_invalid_comb</span></span>: this lemmas shows that we cannot concatenate a
+        forward small-step parse tree with a backward small-step parse
+        tree, if the forward small-step parse tree has an empty stack,
+        while the backward small-step parse tree has a stack with its
+        top to be a matching rule. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_invalid_comb</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span> <span class="id" title="var">T</span> <span class="id" title="var">w'</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Db</span> <span class="id" title="var">v</span> (<span class="id" title="var">MatRetE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span>::<span class="id" title="var">T</span>) <span class="id" title="var">w'</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">x</span> <span class="id" title="var">e</span> <span class="id" title="var">w''</span>, <span class="id" title="var">Df</span> (<span class="id" title="var">x</span> ++ [<span class="id" title="var">e</span>]) [] <span class="id" title="var">w''</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">DM.Dm</span> <span class="id" title="var">L_0</span> (<span class="id" title="var">w''</span>++<span class="id" title="var">w'</span>) ((<span class="id" title="var">x</span> ++ [<span class="id" title="var">e</span>]) ++ <span class="id" title="var">v</span>) → <span class="id" title="var">False</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_invalid_comb_pndc</span></span>: this lemmas shows that we cannot
+        concatenate a forward small-step parse tree with a backward
+        small-step parse tree, if the forward small-step parse tree has
+        a stack with its top to be a pending rule, while the backward
+        small-step parse tree has a stack with its top to be a matching
+        rule. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_invalid_comb_pndc</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span> <span class="id" title="var">T</span> <span class="id" title="var">w'</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Db</span> <span class="id" title="var">v</span> (<span class="id" title="var">MatRetE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span>::<span class="id" title="var">T</span>) <span class="id" title="var">w'</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">x</span> <span class="id" title="var">e</span> <span class="id" title="var">T'</span> <span class="id" title="var">L'</span> <span class="id" title="var">a</span> <span class="id" title="var">L''</span> <span class="id" title="var">w''</span>, <span class="id" title="var">Df</span> (<span class="id" title="var">x</span> ++ [<span class="id" title="var">e</span>]) (<span class="id" title="var">PndCalE</span> <span class="id" title="var">L'</span> <span class="id" title="var">a</span> <span class="id" title="var">L''</span>::<span class="id" title="var">T'</span>) <span class="id" title="var">w''</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">DM.Dm</span> <span class="id" title="var">L_0</span> (<span class="id" title="var">w''</span>++<span class="id" title="var">w'</span>) ((<span class="id" title="var">x</span> ++ [<span class="id" title="var">e</span>]) ++ <span class="id" title="var">v</span>) → <span class="id" title="var">False</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_invalid_comb_matc_e</span></span>: this lemmas shows that we cannot
+        concatenate a forward small-step parse tree with a backward
+        small-step parse tree, if the forward small-step parse tree has
+        a stack with its top to be a matching rule, while the backward
+        small-step parse tree has an empty stack. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_invalid_comb_matc_e</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">w'</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Db</span> <span class="id" title="var">v</span> [] <span class="id" title="var">w'</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">x</span> <span class="id" title="var">e</span> <span class="id" title="var">T'</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span> <span class="id" title="var">w''</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Df</span> (<span class="id" title="var">x</span> ++ [<span class="id" title="var">e</span>]) (<span class="id" title="var">MatCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span>::<span class="id" title="var">T'</span>) <span class="id" title="var">w''</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">DM.Dm</span> <span class="id" title="var">L_0</span> (<span class="id" title="var">w''</span>++<span class="id" title="var">w'</span>) ((<span class="id" title="var">x</span> ++ [<span class="id" title="var">e</span>]) ++ <span class="id" title="var">v</span>) → <span class="id" title="var">False</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_invalid_comb_matc_pnd</span></span>: this lemmas shows that we cannot
+        concatenate a forward small-step parse tree with a backward
+        small-step parse tree, if the forward small-step parse tree has
+        a stack with its top to be a matching rule, while the backward
+        small-step parse tree has a stack with a pending rule on top. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_invalid_comb_matc_pnd</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">L'</span> <span class="id" title="var">a</span> <span class="id" title="var">L''</span> <span class="id" title="var">T''</span> <span class="id" title="var">w'</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Db</span> <span class="id" title="var">v</span> (<span class="id" title="var">PndRetE</span> <span class="id" title="var">L'</span> <span class="id" title="var">a</span> <span class="id" title="var">L''</span>::<span class="id" title="var">T''</span>) <span class="id" title="var">w'</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ ∀ <span class="id" title="var">x</span> <span class="id" title="var">e</span> <span class="id" title="var">T'</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span> <span class="id" title="var">w''</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Df</span> (<span class="id" title="var">x</span> ++ [<span class="id" title="var">e</span>]) (<span class="id" title="var">MatCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span>::<span class="id" title="var">T'</span>) <span class="id" title="var">w''</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">DM.Dm</span> <span class="id" title="var">L_0</span> (<span class="id" title="var">w''</span>++<span class="id" title="var">w'</span>) ((<span class="id" title="var">x</span> ++ [<span class="id" title="var">e</span>]) ++ <span class="id" title="var">v</span>) → <span class="id" title="var">False</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_comb_mat_mat</span></span>: this lemmas shows that if we can concatenate a
+        forward small-step parse tree with a backward small-step parse
+        tree, and their stack top are matching rules, then the matching
+        rules are the same. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_comb_mat_mat</span>: <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">v</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span> <span class="id" title="var">T</span> <span class="id" title="var">w'</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Db</span> <span class="id" title="var">v</span> (<span class="id" title="var">MatRetE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span>::<span class="id" title="var">T</span>) <span class="id" title="var">w'</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">x</span> <span class="id" title="var">e</span> <span class="id" title="var">L'</span> <span class="id" title="var">a'</span> <span class="id" title="var">L1'</span> <span class="id" title="var">b'</span> <span class="id" title="var">L2'</span> <span class="id" title="var">T'</span> <span class="id" title="var">w''</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Df</span> (<span class="id" title="var">x</span> ++ [<span class="id" title="var">e</span>]) (<span class="id" title="var">MatCalE</span> <span class="id" title="var">L'</span> <span class="id" title="var">a'</span> <span class="id" title="var">L1'</span> <span class="id" title="var">b'</span> <span class="id" title="var">L2'</span>::<span class="id" title="var">T'</span>) <span class="id" title="var">w''</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">DM.Dm</span> <span class="id" title="var">L_0</span> (<span class="id" title="var">w''</span>++<span class="id" title="var">w'</span>) ((<span class="id" title="var">x</span> ++ [<span class="id" title="var">e</span>]) ++ <span class="id" title="var">v</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">eqvv</span> <span class="id" title="var">L'</span> <span class="id" title="var">L</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; <span class="id" title="var">eqvv</span> <span class="id" title="var">L1'</span> <span class="id" title="var">L1</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; <span class="id" title="var">eqvv</span> <span class="id" title="var">L2'</span> <span class="id" title="var">L2</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; (<span class="id" title="var">a'</span> =? <span class="id" title="var">a</span>)%<span class="id" title="var">string</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; (<span class="id" title="var">b'</span> =? <span class="id" title="var">b</span>)%<span class="id" title="var">string</span> = <span class="id" title="var">true</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_extract</span></span>: this is the main theorem of the correctness as well
+        as the invariant of the extraction function. The theorem shows
+        that during the extraction, for each extracted parse tree <span class="inlinecode"><span class="id" title="var">v</span></span>,
+        there exists a counterpart parse tree <span class="inlinecode"><span class="id" title="var">v'</span></span>, such that <span class="inlinecode"><span class="id" title="var">v'</span>++<span class="id" title="var">v</span></span> is
+        a parse tree  in the big-step derivation of the input string
+        <span class="inlinecode"><span class="id" title="var">w</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Theorem</span> <span class="id" title="var">L_extract</span> : ∀ <span class="id" title="var">M</span> <span class="id" title="var">V</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span>, <span class="id" title="keyword">Extract</span> <span class="id" title="var">M</span> <span class="id" title="var">V</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span> → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">v</span> <span class="id" title="var">I</span>, <span class="id" title="var">In</span> (<span class="id" title="var">v</span>, <span class="id" title="var">I</span>) <span class="id" title="var">V</span> ↔<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Db</span> <span class="id" title="var">v</span> <span class="id" title="var">I</span> <span class="id" title="var">w2</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">w1</span>=[] ∧ <span class="id" title="var">DM.Dm</span> <span class="id" title="var">L_0</span> <span class="id" title="var">w2</span> <span class="id" title="var">v</span>) ∨<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" title="var">v1</span> <span class="id" title="var">I1</span>, <span class="id" title="var">VBeginWith</span> <span class="id" title="var">v1</span> <span class="id" title="var">L_0</span> ∧ <span class="id" title="var">Df</span> <span class="id" title="var">v1</span> <span class="id" title="var">I1</span> <span class="id" title="var">w1</span> ∧ <span class="id" title="var">DM.Dm</span> <span class="id" title="var">L_0</span> (<span class="id" title="var">w1</span>++<span class="id" title="var">w2</span>) (<span class="id" title="var">v1</span>++<span class="id" title="var">v</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">End</span> <span class="id" title="var">Transducer2</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">Transducer</span>.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,39 @@
+grammar:
+    Action vv4
+  | vv4 ;
+vv4:
+    rule
+  | rule vv4 ;
+rule:
+    Nonterminal ':' ruleBody vv3 ';'
+  | Nonterminal ':' ruleBody ';' ;
+vv3:
+    '|' ruleBody
+  | '|' ruleBody vv3 ;
+ruleBody:
+    vv2 Action
+  | vv2 ;
+vv2:
+    term
+  | term vv2 ;
+term:
+    <'(' vv1 ')'> Reg_op
+  | <'(' vv1 ')'>
+  | return Reg_op
+  | return
+  | call Reg_op
+  | call
+  | Nonterminal Reg_op
+  | Nonterminal
+  | Terminal Reg_op
+  | Terminal ;
+vv1:
+    vv2
+  | vv2 vv5 ;
+vv5:
+    '|' vv2 vv5
+  | '|' vv2 ;
+call:
+    '<' Terminal ;
+return:
+    Terminal '>' ;

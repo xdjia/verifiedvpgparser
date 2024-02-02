@@ -1,0 +1,281 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>BackwardSmallStep</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library BackwardSmallStep</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+This file verifies the properties of the backward small-step
+    relation <span class="inlinecode"><span class="id" title="var">Db</span></span> <span class="inlinecode"><span class="id" title="var">v</span></span> <span class="inlinecode"><span class="id" title="var">I</span></span> <span class="inlinecode"><span class="id" title="var">w</span></span>. The relation <span class="inlinecode"><span class="id" title="var">Db</span></span> formalizes how a single parse
+    tree is extended in a <i>backward</i> way during running the extraction
+    PDA. "Backward" here means that the tree is extended from the rule
+    that derives the last symbol of the input string to the rule that
+    derives the first symbol. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Lists.List</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">ListNotations</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Extraction</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Arith</span> <span class="id" title="var">String</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Structures.Orders</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Ltac</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">MSets</span> <span class="id" title="var">MSets.MSetProperties</span> <span class="id" title="var">MSets.MSetEqProperties</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="var">Structures.OrderedTypeEx</span> <span class="id" title="var">Structures.OrdersFacts</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Classes.RelationClasses</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Program.Equality</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Misc</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">list_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Unicode.Utf8_core</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ForwardSmallStep</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Def</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Misc</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Tac</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.Basic</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.vpg</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">BackwardSmallStep</span>(<span class="id" title="var">G</span>:<span class="id" title="var">VPG</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">ForwardSmallStep</span> := <span class="id" title="var">ForwardSmallStep</span>(<span class="id" title="var">G</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">ForwardSmallStep</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">ForwardSmallStep.DB</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The module <span class="inlinecode"><span class="id" title="var">Core</span></span> provides the core lemmas used in the correctness
+    proof 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">Core</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.Basic</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.vpg</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">VBeginWithS</span></span>: a parse tree begins with a symbol. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Inductive</span> <span class="id" title="var">VBeginWithS</span> : <span class="id" title="var">list</span> <span class="id" title="var">VE</span> → <span class="id" title="var">var</span> → <span class="id" title="var">symbol</span> → <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">BeginSC</span> <span class="id" title="var">v</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span>: <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" title="var">_v</span> <span class="id" title="var">_L</span>, <span class="id" title="var">v</span>=[<span class="id" title="var">Plnv</span> (<span class="id" title="var">PlnE</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> <span class="id" title="var">_L</span>)]++ <span class="id" title="var">_v</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">VBeginWithS</span> <span class="id" title="var">v</span> <span class="id" title="var">L</span> (<span class="id" title="var">Plain</span> <span class="id" title="var">i</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">BeginSA1</span> <span class="id" title="var">v</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span>: <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" title="var">_v</span> <span class="id" title="var">_L</span>, <span class="id" title="var">v</span>=[<span class="id" title="var">Calv</span> (<span class="id" title="var">PndCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> <span class="id" title="var">_L</span>)]++ <span class="id" title="var">_v</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">VBeginWithS</span> <span class="id" title="var">v</span> <span class="id" title="var">L</span> (<span class="id" title="var">Call</span> <span class="id" title="var">i</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">BeginSA2</span> <span class="id" title="var">v</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span>:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" title="var">_v</span> <span class="id" title="var">_b</span> <span class="id" title="var">_L1</span> <span class="id" title="var">_L2</span>,  <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">v</span>=[<span class="id" title="var">Calv</span> (<span class="id" title="var">MatCalE</span> <span class="id" title="var">L</span> <span class="id" title="var">a</span> <span class="id" title="var">_L1</span> <span class="id" title="var">_b</span> <span class="id" title="var">_L2</span>)]++ <span class="id" title="var">_v</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">VBeginWithS</span> <span class="id" title="var">v</span> <span class="id" title="var">L</span> (<span class="id" title="var">Call</span> <span class="id" title="var">a</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">BeginSB</span> <span class="id" title="var">v</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span>: <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" title="var">_v</span> <span class="id" title="var">_L</span>, <span class="id" title="var">v</span>=[<span class="id" title="var">Retv</span> (<span class="id" title="var">PndRetE</span> <span class="id" title="var">L</span> <span class="id" title="var">i</span> <span class="id" title="var">_L</span>)]++ <span class="id" title="var">_v</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">VBeginWithS</span> <span class="id" title="var">v</span> <span class="id" title="var">L</span> (<span class="id" title="var">Ret</span> <span class="id" title="var">i</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">PendT</span></span>: if a stack has a pending rule as its top, then all 
+      rules on the stack must be pending. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Inductive</span> <span class="id" title="var">PendT</span> : <span class="id" title="var">list</span> <span class="id" title="var">RetEdge</span> → <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">PdTE</span>: <span class="id" title="var">PendT</span> []<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">PdTC</span>: ∀ <span class="id" title="var">T</span>, (∃ <span class="id" title="var">L</span> <span class="id" title="var">b</span> <span class="id" title="var">L1</span> <span class="id" title="var">T'</span>, <span class="id" title="var">T</span>=(<span class="id" title="var">PndRetE</span> <span class="id" title="var">L</span> <span class="id" title="var">b</span> <span class="id" title="var">L1</span>)::<span class="id" title="var">T'</span> ∧ <span class="id" title="var">PendT</span> <span class="id" title="var">T'</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">PendT</span> <span class="id" title="var">T</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">BreakDV</span></span>: the invariant of the backward small-step derivation <span class="inlinecode"><span class="id" title="var">Db</span></span>
+        <span class="inlinecode"><span class="id" title="var">v</span></span> <span class="inlinecode"><span class="id" title="var">T</span></span> <span class="inlinecode"><span class="id" title="var">w</span></span>. The invariant <span class="inlinecode"><span class="id" title="var">BreakDV</span></span> basically shows that we can
+        break the parse tree <span class="inlinecode"><span class="id" title="var">v</span></span> into <span class="inlinecode"><span class="id" title="var">v</span>=<span class="id" title="var">v1</span>++[<span class="id" title="var">rb</span>]++<span class="id" title="var">v2</span></span>, where <span class="inlinecode"><span class="id" title="var">rb</span></span> is
+        the last unmatched return rule, <span class="inlinecode"><span class="id" title="var">v1</span></span> satisfies the forward
+        small-step derivation <span class="inlinecode"><span class="id" title="var">Df</span></span>, and <span class="inlinecode"><span class="id" title="var">v2</span></span> satisfies <span class="inlinecode"><span class="id" title="var">Db</span></span>.
+        Additionally, under certain conditions we can extend <span class="inlinecode"><span class="id" title="var">Df</span></span> or
+        <span class="inlinecode"><span class="id" title="var">Db</span></span> to the big-step derivation <span class="inlinecode"><span class="id" title="var">Dm</span></span>: when the stack <span class="inlinecode"><span class="id" title="var">T</span></span> is
+        empty or the top of <span class="inlinecode"><span class="id" title="var">T</span></span> is a pending rule, then <span class="inlinecode"><span class="id" title="var">Db</span></span> <span class="inlinecode"><span class="id" title="var">v</span></span> <span class="inlinecode"><span class="id" title="var">T</span></span> <span class="inlinecode"><span class="id" title="var">w</span></span>
+        indicates <span class="inlinecode"><span class="id" title="var">Dm</span></span> <span class="inlinecode"><span class="id" title="var">L</span></span> <span class="inlinecode"><span class="id" title="var">v</span></span> <span class="inlinecode"><span class="id" title="var">w</span></span>; when the top of <span class="inlinecode"><span class="id" title="var">T</span></span> is a macthing rule,
+        the extension is based on whether <span class="inlinecode"><span class="id" title="var">v1</span></span> and <span class="inlinecode"><span class="id" title="var">v2</span></span> are empty. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Inductive</span> <span class="id" title="var">BreakDV</span>:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">list</span> <span class="id" title="var">VE</span>) → <span class="id" title="var">list</span> <span class="id" title="var">RetEdge</span> → <span class="id" title="var">list</span> <span class="id" title="var">symbol</span> → <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">BK</span> : ∀ <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Db</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">T</span>=[] ∧ ∃ <span class="id" title="var">Lv</span>, <span class="id" title="var">VBeginWith</span> <span class="id" title="var">v</span> <span class="id" title="var">Lv</span> ∧ <span class="id" title="var">Dm</span> <span class="id" title="var">Lv</span> <span class="id" title="var">w</span> <span class="id" title="var">v</span>) ∨<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">PendT</span> <span class="id" title="var">T</span> ∧ ∃ <span class="id" title="var">Lv</span>, <span class="id" title="var">VBeginWith</span> <span class="id" title="var">v</span> <span class="id" title="var">Lv</span> ∧ <span class="id" title="var">Dm</span> <span class="id" title="var">Lv</span> <span class="id" title="var">w</span> <span class="id" title="var">v</span>) ∨<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">L1</span> <span class="id" title="var">a</span> <span class="id" title="var">L2</span> <span class="id" title="var">b</span> <span class="id" title="var">L3</span> <span class="id" title="var">t</span> <span class="id" title="var">T'</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">t</span>=<span class="id" title="var">MatRetE</span> <span class="id" title="var">L1</span> <span class="id" title="var">a</span> <span class="id" title="var">L2</span> <span class="id" title="var">b</span> <span class="id" title="var">L3</span> ∧ <span class="id" title="var">T</span>=<span class="id" title="var">t</span>::<span class="id" title="var">T'</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">in_rules</span> (<span class="id" title="var">L1</span>, <span class="id" title="var">Alt_Match</span> (<span class="id" title="var">a</span>) (<span class="id" title="var">b</span>) <span class="id" title="var">L2</span> <span class="id" title="var">L3</span>) <span class="id" title="var">P</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">v</span> = [<span class="id" title="var">Retv</span> <span class="id" title="var">t</span>] ∧ <span class="id" title="var">w</span> = [<span class="id" title="var">Ret</span> <span class="id" title="var">b</span>] <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∧ <span class="id" title="var">in_rules</span> (<span class="id" title="var">L3</span>, <span class="id" title="var">Alt_Epsilon</span>) <span class="id" title="var">P</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∨<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" title="var">v2</span> <span class="id" title="var">w2</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">v</span> = <span class="id" title="var">Retv</span> <span class="id" title="var">t</span>::<span class="id" title="var">v2</span> ∧ <span class="id" title="var">w</span>=(<span class="id" title="var">Ret</span> <span class="id" title="var">b</span>)::<span class="id" title="var">w2</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Db</span> <span class="id" title="var">v2</span> <span class="id" title="var">T'</span> <span class="id" title="var">w2</span> ∧ <span class="id" title="var">BreakDV</span> <span class="id" title="var">v2</span> <span class="id" title="var">T'</span> <span class="id" title="var">w2</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" title="var">L4</span> <span class="id" title="var">a2</span> <span class="id" title="var">L5</span> <span class="id" title="var">b2</span> <span class="id" title="var">L6</span> <span class="id" title="var">w3</span> <span class="id" title="var">v3</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">w2</span>=<span class="id" title="var">Ret</span> <span class="id" title="var">b2</span>::<span class="id" title="var">w3</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">v2</span>=<span class="id" title="var">Retv</span> (<span class="id" title="var">MatRetE</span> <span class="id" title="var">L4</span> <span class="id" title="var">a2</span> <span class="id" title="var">L5</span> <span class="id" title="var">b2</span> <span class="id" title="var">L6</span>) ::<span class="id" title="var">v3</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">in_rules</span> (<span class="id" title="var">L3</span>, <span class="id" title="var">Alt_Epsilon</span>) <span class="id" title="var">P</span>) ∨<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" title="var">L4</span> <span class="id" title="var">i</span> <span class="id" title="var">w3</span>, <span class="id" title="var">w2</span>=<span class="id" title="var">i</span>::<span class="id" title="var">w3</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">VBeginWithS</span> <span class="id" title="var">v2</span> <span class="id" title="var">L4</span> <span class="id" title="var">i</span> ∧ <span class="id" title="var">L3</span>=<span class="id" title="var">L4</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) ∨<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">Lv</span> <span class="id" title="var">v1</span> <span class="id" title="var">w1</span> <span class="id" title="var">i</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">v</span> = <span class="id" title="var">v1</span> ++ [<span class="id" title="var">Retv</span> <span class="id" title="var">t</span>]  ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">w</span> = <span class="id" title="var">i</span>::<span class="id" title="var">w1</span>++[<span class="id" title="var">Ret</span> <span class="id" title="var">b</span>]  ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">VBeginWithS</span> <span class="id" title="var">v1</span> <span class="id" title="var">Lv</span> <span class="id" title="var">i</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Dm</span> <span class="id" title="var">Lv</span> (<span class="id" title="var">i</span> ::<span class="id" title="var">w1</span>) <span class="id" title="var">v1</span>   ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∀ <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>, <span class="id" title="var">Def.DF.Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ (∃ <span class="id" title="var">Le</span>, <span class="id" title="var">VEndWith</span> <span class="id" title="var">v</span> <span class="id" title="var">Le</span> ∧ <span class="id" title="var">VBeginWith</span> <span class="id" title="var">v1</span> <span class="id" title="var">Le</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">Def.DF.Df</span> (<span class="id" title="var">v</span>++<span class="id" title="var">v1</span>) <span class="id" title="var">T</span> (<span class="id" title="var">w</span>++<span class="id" title="var">i</span>::<span class="id" title="var">w1</span>)) ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">in_rules</span> (<span class="id" title="var">L3</span>, <span class="id" title="var">Alt_Epsilon</span>) <span class="id" title="var">P</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">T'</span>=[]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) ∨<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">Lv</span> <span class="id" title="var">v1</span> <span class="id" title="var">v2</span> <span class="id" title="var">w1</span> <span class="id" title="var">w2</span> <span class="id" title="var">i</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">v</span> = <span class="id" title="var">v1</span> ++ [<span class="id" title="var">Retv</span> <span class="id" title="var">t</span>] ++ <span class="id" title="var">v2</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">w</span> = <span class="id" title="var">w1</span> ++ [<span class="id" title="var">Ret</span> <span class="id" title="var">b</span>] ++ <span class="id" title="var">w2</span>  ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">VBeginWithS</span> <span class="id" title="var">v1</span> <span class="id" title="var">Lv</span> <span class="id" title="var">i</span>      ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Dm</span> <span class="id" title="var">Lv</span> <span class="id" title="var">w1</span> <span class="id" title="var">v1</span>              ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∀ <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>, <span class="id" title="var">Def.DF.Df</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" title="var">Le</span>, <span class="id" title="var">VEndWith</span> <span class="id" title="var">v</span> <span class="id" title="var">Le</span> ∧ <span class="id" title="var">VBeginWith</span> <span class="id" title="var">v1</span> <span class="id" title="var">Le</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">Def.DF.Df</span> (<span class="id" title="var">v</span>++<span class="id" title="var">v1</span>) <span class="id" title="var">T</span> (<span class="id" title="var">w</span>++<span class="id" title="var">w1</span>)) ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Db</span> <span class="id" title="var">v2</span> <span class="id" title="var">T'</span> <span class="id" title="var">w2</span> ∧ <span class="id" title="var">BreakDV</span> <span class="id" title="var">v2</span> <span class="id" title="var">T'</span> <span class="id" title="var">w2</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">L4</span> <span class="id" title="var">a2</span> <span class="id" title="var">L5</span> <span class="id" title="var">b2</span> <span class="id" title="var">L6</span> <span class="id" title="var">w3</span> <span class="id" title="var">v3</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">w2</span>=<span class="id" title="var">Ret</span> <span class="id" title="var">b2</span>::<span class="id" title="var">w3</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">v2</span>=<span class="id" title="var">Retv</span> (<span class="id" title="var">MatRetE</span> <span class="id" title="var">L4</span> <span class="id" title="var">a2</span> <span class="id" title="var">L5</span> <span class="id" title="var">b2</span> <span class="id" title="var">L6</span>) ::<span class="id" title="var">v3</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">in_rules</span> (<span class="id" title="var">L3</span>, <span class="id" title="var">Alt_Epsilon</span>) <span class="id" title="var">P</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) ∨<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∃ <span class="id" title="var">L4</span> <span class="id" title="var">i</span> <span class="id" title="var">w3</span>, <span class="id" title="var">w2</span>=<span class="id" title="var">i</span>::<span class="id" title="var">w3</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∧ <span class="id" title="var">VBeginWithS</span> <span class="id" title="var">v2</span> <span class="id" title="var">L4</span> <span class="id" title="var">i</span> ∧ <span class="id" title="var">L3</span>=<span class="id" title="var">L4</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">BreakDV</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L4_2</span></span>: Lemma 4.2 shows the backward small-step derivation <span class="inlinecode"><span class="id" title="var">Db</span></span>
+      satisfies <span class="inlinecode"><span class="id" title="var">BreakDV</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L4_2</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>, <span class="id" title="var">BreakDV</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">SoundV</span></span>: the soundness of the backward small-step derivation
+        <span class="inlinecode"><span class="id" title="var">Db</span></span> means that <span class="inlinecode"><span class="id" title="var">Dv</span></span> indicates the big-step derivation <span class="inlinecode"><span class="id" title="var">Dm</span></span>,
+        under certain conditions.  
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Theorem</span> <span class="id" title="var">SoundV</span>: ∀ <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> <span class="id" title="var">Lv</span> <span class="id" title="var">Le</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Db</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">VBeginWith</span> <span class="id" title="var">v</span> <span class="id" title="var">Lv</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">VEndWith</span> <span class="id" title="var">v</span> <span class="id" title="var">Le</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">in_rules</span> (<span class="id" title="var">Le</span>, <span class="id" title="var">Alt_Epsilon</span>) <span class="id" title="var">P</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ (<span class="id" title="var">T</span>=[] ∨ ∃ <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span> <span class="id" title="var">T'</span>, <span class="id" title="var">T</span>=(<span class="id" title="var">PndRetE</span> <span class="id" title="var">L1</span> <span class="id" title="var">b</span> <span class="id" title="var">L2</span>)::<span class="id" title="var">T'</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">Dm</span> <span class="id" title="var">Lv</span> <span class="id" title="var">w</span> <span class="id" title="var">v</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L4_3</span></span>: Lemma 4.3 shows the big-step derivation <span class="inlinecode"><span class="id" title="var">Dm</span></span>
+      satisfies <span class="inlinecode"><span class="id" title="var">BreakDV</span></span> when the start nonterminal belongs to V0. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L4_3</span>: ∀ <span class="id" title="var">L</span> <span class="id" title="var">v</span> <span class="id" title="var">w</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Dm</span> <span class="id" title="var">L</span> <span class="id" title="var">w</span> <span class="id" title="var">v</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ (∃ <span class="id" title="var">vv</span>, <span class="id" title="var">L</span>=<span class="id" title="var">V0</span> <span class="id" title="var">vv</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">w</span> ≠ []<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">Db</span> <span class="id" title="var">v</span> [] <span class="id" title="var">w</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">v2</span> <span class="id" title="var">T2</span> <span class="id" title="var">w2</span> <span class="id" title="var">L1</span> <span class="id" title="var">a</span> <span class="id" title="var">L2</span> <span class="id" title="var">b</span> <span class="id" title="var">L3</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">Db</span> (<span class="id" title="var">Retv</span> (<span class="id" title="var">MatRetE</span> <span class="id" title="var">L1</span> <span class="id" title="var">a</span> <span class="id" title="var">L2</span> <span class="id" title="var">b</span> <span class="id" title="var">L3</span>)::<span class="id" title="var">v2</span>) <span class="id" title="var">T2</span> <span class="id" title="var">w2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">Db</span> (<span class="id" title="var">v</span>++<span class="id" title="var">Retv</span> (<span class="id" title="var">MatRetE</span> <span class="id" title="var">L1</span> <span class="id" title="var">a</span> <span class="id" title="var">L2</span> <span class="id" title="var">b</span> <span class="id" title="var">L3</span>)::<span class="id" title="var">v2</span>) <span class="id" title="var">T2</span> (<span class="id" title="var">w</span>++<span class="id" title="var">w2</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">CompleteM</span></span>: the completeness of the backward small-step
+        derivation <span class="inlinecode"><span class="id" title="var">Db</span></span> means that each big-step derivation <span class="inlinecode"><span class="id" title="var">Dm</span></span> is a
+        <span class="inlinecode"><span class="id" title="var">Db</span></span>, as long as the string is not empty. 
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Theorem</span> <span class="id" title="var">CompleteM</span>: ∀ <span class="id" title="var">L</span> <span class="id" title="var">w</span> <span class="id" title="var">v</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Dm</span> <span class="id" title="var">L</span> <span class="id" title="var">w</span> <span class="id" title="var">v</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" title="var">w</span> ≠ []<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ ∃ <span class="id" title="var">T</span>, <span class="id" title="var">PendT</span> <span class="id" title="var">T</span> ∧ <span class="id" title="var">Db</span> <span class="id" title="var">v</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">End</span> <span class="id" title="var">Core</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">BackwardSmallStep</span>.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

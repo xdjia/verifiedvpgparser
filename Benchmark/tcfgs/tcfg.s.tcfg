@@ -1,0 +1,174 @@
+// NOTE - val stack : term list
+
+@{
+  open TCFGParser.TCFG
+  open TCFGParser.Utils
+
+  type value_stack =
+    | Stack_op of (string)
+    | Stack_token of (string * string)
+    | Stack_term of TCFG.term
+    | Stack_terms of TCFG.terms
+    | Stack_call of string
+    | Stack_return of string 
+    | Stack_alt of TCFG.terms * string
+    | Stack_alts of TCFG.term list list
+    | Stack_rule of TCFG.rule * (string option)
+    | Stack_rules of TCFG.rule list
+
+  let add_op op terms =
+    match op with 
+    | "*" -> Stack_term (Ast terms)
+    | "+" -> Stack_term (Pls terms)
+    | "?" -> Stack_term (Qst terms)
+    | _ -> err (sprintf "invalid regular operator: %s" op)
+}
+
+grammar:
+    rule grammar @{
+      let f = function
+      | Stack_rule rule::Stack_rules rules ->
+        Stack_rules (rule::rules) :: value_stack
+      | _ -> err "Invalid stack values"
+    }
+  | rule @{
+    let f value_stack = value_stack
+  };
+
+rule:
+    Nonterminal ':' ruleBody vv3 ';' @{
+      let f = function 
+      | Stack_term (Var nt)::_::Stack_alt alt::Stack_alts alts::_::value_stack ->
+        Stack_rule (nt, alt :: alts)::value_stack
+      | _ -> err "Invalid stack values"
+    }
+  | Nonterminal ':' ruleBody ';' @{
+      let f = function 
+      | Stack_term (Var nt)::_::Stack_alt alt::_::value_stack ->
+        Stack_rule (nt, alt :: alts)::value_stack
+      | _ -> err "Invalid stack values"
+    };
+
+vv3:
+    '|' ruleBody @{
+      let f = function 
+      | _::Stack_alt alt::value_stack ->
+        Stack_alts [alt]::value_stack
+      | _ -> err "Invalid stack values"
+    }
+  | '|' ruleBody vv3 @{
+      let f = function 
+      | _::Stack_alt alt::Stack_alts alts::value_stack ->
+        Stack_alts (alt::alts)::value_stack
+      | _ -> err "Invalid stack values"
+  };
+
+ruleBody:
+    vv2 Action @{
+      let f = function 
+      | Stack_terms terms::Stack_token (_, action)::value_stack ->
+        Stack_alts [(terms, Some action)]::value_stack
+      | _ -> err "Invalid stack values"
+    }
+  | vv2 @{
+      let f = function 
+      | Stack_alt alt::value_stack ->
+        Stack_alts [(alt, None)]::value_stack
+      | _ -> err "Invalid stack values"
+    };
+
+vv2:
+    term @{
+      let f = function 
+      | Stack_term term::value_stack ->
+        Stack_alt [term]::value_stack
+      | _ -> err "Invalid stack values"
+    }
+  | term vv2 @{
+      let f = function 
+      | Stack_term term::Stack_alt alt::value_stack ->
+        Stack_alt (term::alt)::value_stack
+      | _ -> err "Invalid stack values"
+    };
+
+term:
+    <'(' vv1 ')'> Reg_op @{
+      let f = function 
+      | _::Stack_alt alt::_::Stack_op op::value_stack ->
+        Stack_term (add_op op alt)::value_stack
+      | _ -> err "Invalid stack values"
+    }
+  | <'(' vv1 ')'> @{
+      let f = function 
+      | _::Stack_alt alt::value_stack ->
+        Stack_term (Seq alt)::value_stack
+      | _ -> err "Invalid stack values"
+    }
+  | return
+  | call
+  | Nonterminal Reg_op @{
+      let f = function 
+      | Stack_token (name, lexeme)::Stack_op op::value_stack ->
+        Stack_term (add_op op (Var lexeme))::value_stack
+      | _ -> err "Invalid stack values"
+    }
+  | Nonterminal @{
+      let f = function 
+      | Stack_token (name, lexeme)::value_stack ->
+        Stack_term (Var lexeme)::value_stack
+      | _ -> err "Invalid stack values"
+    }
+  | Terminal Reg_op @{
+      let f = function 
+      | Stack_token (name, lexeme)::Stack_op op::value_stack ->
+        Stack_term (add_op op (Trm lexeme))::value_stack
+      | _ -> err "Invalid stack values"
+    }
+  | Terminal @{
+      let f = function 
+      | Stack_token (name, lexeme)::value_stack ->
+        Stack_term (Trm lexeme)::value_stack
+      | _ -> err "Invalid stack values"
+    };
+
+vv1:
+    vv2
+  | vv2 vv4 @{
+      let f = function 
+      | Stack_alt alt::Stack_alts alts::value_stack ->
+        Stack_alts (alt::alts)::value_stack
+      | _ -> err "Invalid stack values"
+    };
+
+vv4:
+    '|' vv2 vv4 @{
+      let f = function 
+      | Stack_alt alt::Stack_alts alts::value_stack ->
+        Stack_alts (alt::alts)::value_stack
+      | _ -> err "Invalid stack values"
+    }
+  | '|' vv2 @{
+      let f = function 
+      | Stack_alt alt::value_stack ->
+        Stack_alts ([alt])::value_stack
+      | _ -> err "Invalid stack values"
+    };
+
+call:
+    '<' Terminal @{
+      let f = function 
+      | Stack_token (name, lexeme)::Stack_token (name, lexeme)::value_stack ->
+        match split_by_ret value_stack with 
+        | None -> err "unmatched call symbol"
+        | Some (terms, ret, value_stack) ->
+          Stack_term (Mat (lexeme, terms, ret))::value_stack
+      | _ -> err "Invalid stack values"
+    };
+
+return:
+    Terminal '>' @{
+      let f = function 
+      | Stack_token (name, lexeme)::_::value_stack ->
+        Stack_return (Trm lexeme)::value_stack
+      | _ -> err "Invalid stack values"
+    };

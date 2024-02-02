@@ -1,0 +1,14 @@
+(env
+ (dev
+  (flags
+   (:standard
+    -w
+    -unused-var-strict
+    -w
+    -unused-value-declaration
+    -w
+    -unused-var)))
+ (release
+  (ocamlopt_flags :standard -O3 -noassert -w -A)))
+
+(dirs :standard \ Data)

@@ -1,0 +1,4 @@
+(library
+ (name CoqParser)
+ (public_name CoqParser)
+ (modules VerifiedParser))

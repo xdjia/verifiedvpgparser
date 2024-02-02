@@ -1,0 +1,311 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>TimedExtraction</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library TimedExtraction</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+This file defines the monadic function <span class="inlinecode"><span class="id" title="var">extract'</span></span> and summarizes the
+    verified properties of the parser generator. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Lists.List</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">ListNotations</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Extraction</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Arith</span> <span class="id" title="var">String</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Structures.Orders</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Ltac</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">MSets</span> <span class="id" title="var">MSets.MSetProperties</span> <span class="id" title="var">MSets.MSetEqProperties</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="var">Structures.OrderedTypeEx</span> <span class="id" title="var">Structures.OrdersFacts</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Classes.RelationClasses</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Program</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Program.Equality</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Init.Wf</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Unicode.Utf8_core</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Lia</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Arith.PeanoNat</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Monad</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">MonadicUtils</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Misc</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.Basic</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.vpg</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Misc</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">PreTimed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">TimedExtractionRet</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">TimedExtraction</span> (<span class="id" title="var">G</span>:<span class="id" title="var">Def.VPG</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">TimedExtractionRet</span> := <span class="id" title="var">TimedExtractionRet</span> (<span class="id" title="var">G</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">TimedExtractionRet</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">TimedExtractionCal</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">TimedExtractionPln</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">ExtractionWNoDup</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Transducer.TimedSets.Parser.PreTimed</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Dbx.BackwardSmallStep.ForwardSmallStep.Tac.Tacs</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Transducer.TimedSets.Parser</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Transducer.TimedSets</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Transducer.PreTransducer</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Transducer.Transducer2</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">cost_extraction_one_step</span></span>: the time cost of the one-step
+      extraction function <span class="inlinecode"><span class="id" title="var">f_b</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_extraction_one_step</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">m</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">PlnCME</span> <span class="id" title="var">m</span> ⇒ <span class="id" title="var">cost_inner_Pln</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">CalCME</span> <span class="id" title="var">m</span> ⇒ <span class="id" title="var">cost_inner_Cal</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">RetCME</span> <span class="id" title="var">m</span> ⇒ <span class="id" title="var">cost_inner</span>     <span class="id" title="var">m</span> <span class="id" title="var">V</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">cost_extraction_one_step</span></span>: the time cost of the one-step
+      extraction function <span class="inlinecode"><span class="id" title="var">f_b</span></span> is O(|m|·|m|·|V|). 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">bound_cost_extraction_one_step</span>: ∃ <span class="id" title="var">k</span> <span class="id" title="var">k1</span> <span class="id" title="var">b1</span> <span class="id" title="var">b2</span>, ∀ <span class="id" title="var">V</span> <span class="id" title="var">m</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_extraction_one_step</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≤ (<span class="id" title="var">k</span> × ||<span class="id" title="var">m</span>|| × ||<span class="id" title="var">m</span>|| + <span class="id" title="var">k1</span> × ||<span class="id" title="var">m</span>|| + <span class="id" title="var">b1</span>) × |<span class="id" title="var">V</span>| + <span class="id" title="var">b2</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">extraction_one_step</span></span>: this version of <span class="inlinecode"><span class="id" title="var">f_b</span></span> provides a different
+      implementation for simpler running-time verification. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">extraction_one_step</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">m</span>:<span class="id" title="var">ME</span>) (<span class="id" title="var">V</span>:<span class="id" title="var">list</span> (<span class="id" title="var">list</span> <span class="id" title="var">VE</span> × <span class="id" title="var">list</span> <span class="id" title="var">RetEdge</span>)) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">m</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">PlnCME</span> <span class="id" title="var">m</span> ⇒ <span class="id" title="var">inner_Pln</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">CalCME</span> <span class="id" title="var">m</span> ⇒ <span class="id" title="var">inner_Cal</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">RetCME</span> <span class="id" title="var">m</span> ⇒ <span class="id" title="var">inner</span>     <span class="id" title="var">m</span> <span class="id" title="var">V</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">extraction_one_step'</span></span>: the monadic version of
+      <span class="inlinecode"><span class="id" title="var">extraction_one_step</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">extraction_one_step'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">m</span>:<span class="id" title="var">ME</span>) (<span class="id" title="var">V</span>:<span class="id" title="var">list</span> (<span class="id" title="var">list</span> <span class="id" title="var">VE</span> × <span class="id" title="var">list</span> <span class="id" title="var">RetEdge</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;: {! <span class="id" title="var">y</span> !:! <span class="id" title="var">list</span> (<span class="id" title="var">list</span> <span class="id" title="var">VE</span> × <span class="id" title="var">list</span> <span class="id" title="var">RetEdge</span>) !&lt;! <span class="id" title="var">c</span> !&gt;! <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">c</span> = <span class="id" title="var">cost_extraction_one_step</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span> ∧ <span class="id" title="var">y</span> = <span class="id" title="var">extraction_one_step</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">m</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">PlnCME</span> <span class="id" title="var">m</span> ⇒ <span class="id" title="var">out</span> &lt;- <span class="id" title="var">inner_Pln'</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span>; &lt;== <span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">CalCME</span> <span class="id" title="var">m</span> ⇒ <span class="id" title="var">out</span> &lt;- <span class="id" title="var">inner_Cal'</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span>; &lt;== <span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">RetCME</span> <span class="id" title="var">m</span> ⇒ <span class="id" title="var">out</span> &lt;- <span class="id" title="var">inner'</span>     <span class="id" title="var">m</span> <span class="id" title="var">V</span>; &lt;== <span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_ex_fb</span></span>: verify that <span class="inlinecode"><span class="id" title="var">extraction_one_step</span></span> is a different
+      version of <span class="inlinecode"><span class="id" title="var">f_b</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_ex_fb</span>: ∀ <span class="id" title="var">m</span> <span class="id" title="var">V</span>, <span class="id" title="var">extraction_one_step</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span> = <span class="id" title="var">f_b</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">cost_extraction_bt</span></span>: the branch time for the base case of the
+      function <span class="inlinecode"><span class="id" title="var">extraction'</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_extraction_bt</span>    := 1.<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">cost_extraction_inner</span></span>: the branch time for the second case of
+      the function <span class="inlinecode"><span class="id" title="var">extraction'</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">cost_extraction_inner</span> := 1.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">cost_extraction</span></span>: the time cost of <span class="inlinecode"><span class="id" title="var">extraction'</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">cost_extraction</span> <span class="id" title="var">M</span> <span class="id" title="var">V</span> : <span class="id" title="var">nat</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">M</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [] ⇒ <span class="id" title="var">cost_extraction_bt</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">m</span>::<span class="id" title="var">M'</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">M'</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| [] ⇒ <span class="id" title="var">cost_extraction_bt</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_extraction_one_step</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span> +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">V'</span> := <span class="id" title="var">extraction_one_step</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span> <span class="id" title="tactic">in</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_extraction</span> <span class="id" title="var">M'</span> <span class="id" title="var">V'</span> +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_extraction_inner</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">extraction'</span></span>: the monadic version of <span class="inlinecode"><span class="id" title="var">extraction</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Program Fixpoint</span> <span class="id" title="var">extraction'</span> <span class="id" title="var">M</span> <span class="id" title="var">V</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;: {! <span class="id" title="var">V'</span> !:! <span class="id" title="var">list</span> (<span class="id" title="var">list</span> <span class="id" title="var">VE</span> × <span class="id" title="var">list</span> <span class="id" title="var">RetEdge</span>) !&lt;! <span class="id" title="var">c</span> !&gt;!<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">c</span> = <span class="id" title="var">cost_extraction</span> <span class="id" title="var">M</span> <span class="id" title="var">V</span> ∧ <span class="id" title="var">V'</span> = <span class="id" title="var">extraction</span> <span class="id" title="var">M</span> <span class="id" title="var">V</span> !}<br/>
+&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">M</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [] ⇒  <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(+= <span class="id" title="var">cost_extraction_bt</span>; &lt;== <span class="id" title="var">V</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">cons</span> <span class="id" title="var">m</span> <span class="id" title="var">M'</span> ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">M'</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| [] ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(+= <span class="id" title="var">cost_extraction_bt</span>; &lt;== <span class="id" title="var">V</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">V'</span> &lt;- <span class="id" title="var">extraction_one_step'</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">extraction'</span> <span class="id" title="var">M'</span> <span class="id" title="var">V'</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_extraction_inner</span>; &lt;== <span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">cost_extraction_and_its_one_step</span></span>: the relation between the time
+      cost of <span class="inlinecode"><span class="id" title="var">extraction'</span></span> and <span class="inlinecode"><span class="id" title="var">extraction_one_step'</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">cost_extraction_and_its_one_step</span>: <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">x</span> <span class="id" title="var">M</span> <span class="id" title="var">V</span> <span class="id" title="var">m</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_extraction_one_step</span> <span class="id" title="var">x</span> (<span class="id" title="var">extraction</span> (<span class="id" title="var">M</span> ++ [<span class="id" title="var">x</span>]) <span class="id" title="var">V</span>) +<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_extraction</span> (<span class="id" title="var">M</span> ++ [<span class="id" title="var">x</span>]) <span class="id" title="var">V</span> + <span class="id" title="var">cost_extraction_inner</span> =<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_extraction</span> ((<span class="id" title="var">M</span> ++ [<span class="id" title="var">x</span>]) ++ [<span class="id" title="var">m</span>]) <span class="id" title="var">V</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_len_m_sub</span></span>: the size of a parser PndCalE state <span class="inlinecode"><span class="id" title="var">m</span></span> is
+      O(|P|·|P|). 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_len_m_sub</span>: ∀ <span class="id" title="var">m</span> <span class="id" title="var">M</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> <span class="id" title="var">i</span>, <span class="id" title="var">Forest</span> (<span class="id" title="var">m</span>::<span class="id" title="var">M</span>) <span class="id" title="var">T</span> (<span class="id" title="var">w</span>++[<span class="id" title="var">i</span>]) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;||<span class="id" title="var">m</span>|| ≤ (1+|<span class="id" title="var">P</span>|+|<span class="id" title="var">P</span>|)*(|<span class="id" title="var">P</span>|+|<span class="id" title="var">P</span>|).<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">Property_VPG_Parser_Generator</span></span>: the property of the end-to-end
+      VPG parser. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Theorem</span> <span class="id" title="var">Property_VPG_Parser_Generator</span>:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">k</span> <span class="id" title="var">b1</span> <span class="id" title="var">b2</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">m</span> <span class="id" title="var">M</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> <span class="id" title="var">i</span>, <span class="id" title="var">Forest</span> (<span class="id" title="var">m</span>::<span class="id" title="var">M</span>) <span class="id" title="var">T</span> (<span class="id" title="var">w</span>++[<span class="id" title="var">i</span>]) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">Vinit</span> := <span class="id" title="var">f_init</span> <span class="id" title="var">m</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">Vw</span> := <span class="id" title="var">extraction</span> <span class="id" title="var">M</span> <span class="id" title="var">Vinit</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+
+<div class="doc">
+<ul class="doclist">
+<li> The list <span class="inlinecode"><span class="id" title="var">Vw</span></span> of extracted parse trees contains no
+          duplicates. 
+
+</li>
+</ul>
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">NoDup</span> <span class="id" title="var">Vw</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+
+<div class="doc">
+<ul class="doclist">
+<li> The time cost of <span class="inlinecode"><span class="id" title="var">extraction'</span></span> is O(k·|Vw|·|w|). 
+
+</li>
+</ul>
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_extraction</span> <span class="id" title="var">M</span> <span class="id" title="var">Vinit</span> ≤ (<span class="id" title="var">k</span> × |<span class="id" title="var">Vw</span>| + <span class="id" title="var">b1</span>) × |<span class="id" title="var">w</span>++[<span class="id" title="var">i</span>]| + <span class="id" title="var">b2</span> ∧<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+
+<div class="doc">
+<ul class="doclist">
+<li> The correctness of <span class="inlinecode"><span class="id" title="var">Vw</span></span>: <span class="inlinecode"><span class="id" title="var">v</span></span> is a parse tree of <span class="inlinecode"><span class="id" title="var">w</span></span>, iff <span class="inlinecode"><span class="id" title="var">v</span></span>
+          is in <span class="inlinecode"><span class="id" title="var">Vw</span></span>. 
+
+</li>
+</ul>
+</div>
+<div class="code">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∀ <span class="id" title="var">v</span>, (∃ <span class="id" title="var">I</span>, <span class="id" title="var">In</span> (<span class="id" title="var">v</span>, <span class="id" title="var">I</span>) <span class="id" title="var">Vw</span>) ↔ <span class="id" title="var">DM.Dm</span> <span class="id" title="var">L_0</span> (<span class="id" title="var">w</span> ++ [<span class="id" title="var">i</span>]) <span class="id" title="var">v</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">TimedExtraction</span>.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

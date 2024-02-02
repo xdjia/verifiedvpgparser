@@ -1,0 +1,38 @@
+(env
+ (dev
+  (flags
+   (:standard
+    -w
+    -unused-var-strict
+    -w
+    -unused-value-declaration
+    -w
+    -unused-var)))
+ (release
+  (ocamlopt_flags :standard -O3 -noassert -w -A)))
+
+(executables
+ (names
+  build_pda
+  parse_tcfg
+  parse_json
+  parse_xml
+  parse_html
+  tree_action_json
+  tree_action_html
+  tree_action_xml
+  tree_action_tcfg)
+ (modules
+  build_pda
+  parse_tcfg
+  parse_json
+  parse_xml
+  parse_html
+  tree_action_json
+  tree_action_html
+  tree_action_xml
+  tree_action_tcfg
+  tcfgs)
+ (libraries TCFGParser)
+ (preprocess
+  (pps sedlex.ppx ppx_deriving.show ppx_jane)))

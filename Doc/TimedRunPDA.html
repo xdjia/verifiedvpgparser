@@ -1,0 +1,438 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>TimedRunPDA</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library TimedRunPDA</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+This file verifies that running a parser PDA takes linear-time. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Lists.List</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">ListNotations</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Extraction</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Arith</span> <span class="id" title="var">String</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Structures.Orders</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Ltac</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <br/>
+&nbsp;&nbsp;<span class="id" title="var">MSets</span> <span class="id" title="var">MSets.MSetProperties</span> <span class="id" title="var">MSets.MSetEqProperties</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <br/>
+&nbsp;&nbsp;<span class="id" title="var">Structures.OrderedTypeEx</span> <span class="id" title="var">Structures.OrdersFacts</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Classes.RelationClasses</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Unicode.Utf8_core</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Program</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Lia</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Misc</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">vpg</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Def</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Tac</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Monad</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">MonadicUtils</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">TimedSets</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">PDA</span>(<span class="id" title="var">G</span>:<span class="id" title="var">VPG</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">TimedSets</span> := <span class="id" title="var">TimedSets</span>(<span class="id" title="var">G</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">TimedSets</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Parser.PreTimed.Dbx.BackwardSmallStep.ForwardSmallStep.Def</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">State</span></span>: a parser PDA state. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">State</span> := <span class="id" title="var">ME</span>.<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">Forest</span></span>: a parser PDA forest. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Forest</span> := <span class="id" title="var">list</span> <span class="id" title="var">ME</span>.<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">StackElt</span></span>: a stack element. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">StackElt</span> := <span class="id" title="var">ME</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">Stack</span></span>: a stack in a configuration. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Stack</span> : <span class="id" title="keyword">Type</span> := <span class="id" title="var">list</span> <span class="id" title="var">ME</span>.<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">Configuration</span></span>: a configuration. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Configuration</span> : <span class="id" title="keyword">Type</span> := <span class="id" title="var">State</span> × <span class="id" title="var">Stack</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">Transition</span></span>: A transition entry. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">Transition</span> : <span class="id" title="keyword">Type</span> := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;((<span class="id" title="var">Symbol</span> × <span class="id" title="var">ME</span> × <span class="id" title="var">option</span> <span class="id" title="var">ME</span>) × <span class="id" title="var">ME</span>).<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">initState</span></span>: the initial state. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <span class="id" title="var">initState</span> : <span class="id" title="var">State</span>.<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">transitions</span></span>: the transition table, implemented as a list of
+    transition entries for simplicity. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Parameter</span> <span class="id" title="var">transitions</span> : <span class="id" title="var">list</span> <span class="id" title="var">Transition</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">bound_m</span></span>: the size of each entry is bounded by a constant
+      independent of the input string. This lemma is used for bounding
+      the lookup time. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">bound_m</span>: ∃ <span class="id" title="var">k</span>, ∀ <span class="id" title="var">sym</span> <span class="id" title="var">s</span> <span class="id" title="var">t</span> <span class="id" title="var">s1</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">In</span> ((<span class="id" title="var">sym</span>,<span class="id" title="var">s</span>,<span class="id" title="var">t</span>),<span class="id" title="var">s1</span>) <span class="id" title="var">transitions</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;||<span class="id" title="var">s</span>|| ≤ <span class="id" title="var">k</span> ∧ ||<span class="id" title="var">s1</span>|| ≤ <span class="id" title="var">k</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(∀ <span class="id" title="var">t'</span>, <span class="id" title="var">t</span>=<span class="id" title="var">Some</span> <span class="id" title="var">t'</span> → ||<span class="id" title="var">t'</span>|| ≤ <span class="id" title="var">k</span>).<br/>
+
+<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">lookUp</span></span>: lookup a transition. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">lookUp</span> (<span class="id" title="var">sym</span>:<span class="id" title="var">Symbol</span>) (<span class="id" title="var">state</span>:<span class="id" title="var">ME</span>) (<span class="id" title="var">stackTop</span>:<span class="id" title="var">option</span> <span class="id" title="var">ME</span>) <br/>
+&nbsp;&nbsp;(<span class="id" title="var">transitions</span>:<span class="id" title="var">list</span> <span class="id" title="var">Transition</span>)<br/>
+&nbsp;&nbsp;: <span class="id" title="var">option</span> <span class="id" title="var">State</span> := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">transitions</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [] ⇒ <span class="id" title="var">None</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| ((<span class="id" title="var">sym1</span>,<span class="id" title="var">state1</span>,<span class="id" title="var">stackTop1</span>),<span class="id" title="var">state2</span>)::<span class="id" title="var">transitions'</span> ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">is_eq_sym</span> := <span class="id" title="var">eqs</span> <span class="id" title="var">sym</span> <span class="id" title="var">sym1</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">is_eq_state</span> := <span class="id" title="var">eq_state</span> <span class="id" title="var">state1</span> <span class="id" title="var">state</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">is_eq_stackTop</span> := <span class="id" title="var">eq_stackTop</span> <span class="id" title="var">stackTop1</span> <span class="id" title="var">stackTop</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">is_eq_sym</span> &amp;&amp; <span class="id" title="var">is_eq_state</span> &amp;&amp; <span class="id" title="var">is_eq_stackTop</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">then</span> <span class="id" title="var">Some</span> <span class="id" title="var">state2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="var">lookUp</span> <span class="id" title="var">sym</span> <span class="id" title="var">state</span> <span class="id" title="var">stackTop</span> <span class="id" title="var">transitions'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">cost_lookUp</span></span>: the time cost of lookuping a transition is
+      O(|transitions|. When the transition table is implemented as a
+      hashtable, the time should be (amortized) constant; here we
+      implement the table as a list for simplicity. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">bound_cost_lookUp</span>: ∃ <span class="id" title="var">k</span> <span class="id" title="var">b</span>, ∀ <span class="id" title="var">sym</span> <span class="id" title="var">state</span> <span class="id" title="var">stackTop</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_lookUp</span> <span class="id" title="var">sym</span> <span class="id" title="var">state</span> <span class="id" title="var">stackTop</span> <span class="id" title="var">transitions</span> ≤ <span class="id" title="var">k</span> × |<span class="id" title="var">transitions</span>| + <span class="id" title="var">b</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">lookUp'</span></span>: the monadic verision of <span class="inlinecode"><span class="id" title="var">lookUp</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Program Fixpoint</span> <span class="id" title="var">lookUp'</span> (<span class="id" title="var">sym</span>:<span class="id" title="var">Symbol</span>) (<span class="id" title="var">state</span>:<span class="id" title="var">ME</span>) (<span class="id" title="var">stackTop</span>:<span class="id" title="var">option</span> <span class="id" title="var">ME</span>) <br/>
+&nbsp;&nbsp;<span class="id" title="var">transitions</span><br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_lookUp</span> <span class="id" title="var">sym</span> <span class="id" title="var">state</span> <span class="id" title="var">stackTop</span> <span class="id" title="var">transitions</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">lookUp</span> <span class="id" title="var">sym</span> <span class="id" title="var">state</span> <span class="id" title="var">stackTop</span> <span class="id" title="var">transitions</span> !}<br/>
+&nbsp;&nbsp;:= <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">transitions</span> <span class="id" title="keyword">as</span> <span class="id" title="var">transitions''</span> <span class="id" title="keyword">return</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">transitions</span>=<span class="id" title="var">transitions''</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">c</span> = <span class="id" title="var">cost_lookUp</span> <span class="id" title="var">sym</span> <span class="id" title="var">state</span> <span class="id" title="var">stackTop</span> <span class="id" title="var">transitions</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">lookUp</span> <span class="id" title="var">sym</span> <span class="id" title="var">state</span> <span class="id" title="var">stackTop</span> <span class="id" title="var">transitions</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [] ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒ += <span class="id" title="var">cost_lookUp_branch1</span>; &lt;== <span class="id" title="var">None</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| ((<span class="id" title="var">sym1</span>,<span class="id" title="var">state1</span>,<span class="id" title="var">stackTop1</span>),<span class="id" title="var">state2</span>)::<span class="id" title="var">transitions'</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">is_eq_sym</span> &lt;- <span class="id" title="var">eqs'</span> <span class="id" title="var">sym</span> <span class="id" title="var">sym1</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">is_eq_state</span> &lt;- <span class="id" title="var">eq_state'</span> <span class="id" title="var">state1</span> <span class="id" title="var">state</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">is_eq_stackTop</span> &lt;- <span class="id" title="var">eq_stackTop'</span> <span class="id" title="var">stackTop1</span> <span class="id" title="var">stackTop</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">dec</span> (<span class="id" title="var">is_eq_sym</span> &amp;&amp; <span class="id" title="var">is_eq_state</span> &amp;&amp; <span class="id" title="var">is_eq_stackTop</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">then</span> += <span class="id" title="var">cost_lookUp_branch2</span>; &lt;== <span class="id" title="var">Some</span> <span class="id" title="var">state2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">else</span> <span class="id" title="var">out</span> &lt;- <span class="id" title="var">lookUp'</span> <span class="id" title="var">sym</span> <span class="id" title="var">state</span> <span class="id" title="var">stackTop</span> <span class="id" title="var">transitions'</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_lookUp_branch3</span>; &lt;== <span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">transitions</span>).<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">transition</span></span>: the one-step transition function. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">transition</span> (<span class="id" title="var">sym</span>:<span class="id" title="var">Symbol</span>) (<span class="id" title="var">config</span>:<span class="id" title="var">Configuration</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">config</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">state</span>, <span class="id" title="var">stack</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">stack</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| [] ⇒ <span class="id" title="var">lookUp</span> <span class="id" title="var">sym</span> <span class="id" title="var">state</span> <span class="id" title="var">None</span> <span class="id" title="var">transitions</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">st</span>::<span class="id" title="var">_</span> ⇒ <span class="id" title="var">lookUp</span> <span class="id" title="var">sym</span> <span class="id" title="var">state</span> (<span class="id" title="var">Some</span> <span class="id" title="var">st</span>) <span class="id" title="var">transitions</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">transition</span></span>: the time cost of the one-step transition function is
+      O(|transitions|). 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">bound_cost_transition</span>: ∃ <span class="id" title="var">k</span> <span class="id" title="var">b</span>, ∀ <span class="id" title="var">sym</span> <span class="id" title="var">config</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_transition</span> <span class="id" title="var">sym</span> <span class="id" title="var">config</span> ≤ <span class="id" title="var">k</span> × |<span class="id" title="var">transitions</span>| + <span class="id" title="var">b</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">transition'</span></span>: the monadic version of <span class="inlinecode"><span class="id" title="var">transition</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">transition'</span> (<span class="id" title="var">sym</span>:<span class="id" title="var">Symbol</span>) (<span class="id" title="var">config</span>:<span class="id" title="var">Configuration</span>) <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_transition</span> <span class="id" title="var">sym</span> <span class="id" title="var">config</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">transition</span> <span class="id" title="var">sym</span> <span class="id" title="var">config</span> !}<br/>
+&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">config</span> <span class="id" title="keyword">as</span> <span class="id" title="var">config'</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">config</span>=<span class="id" title="var">config'</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_transition</span> <span class="id" title="var">sym</span> <span class="id" title="var">config</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">transition</span> <span class="id" title="var">sym</span> <span class="id" title="var">config</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">state</span>, <span class="id" title="var">stack</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">stack</span> <span class="id" title="keyword">as</span> <span class="id" title="var">stack'</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">stack</span>=<span class="id" title="var">stack'</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_transition</span> <span class="id" title="var">sym</span> <span class="id" title="var">config</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">transition</span> <span class="id" title="var">sym</span> <span class="id" title="var">config</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| [] ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒ <span class="id" title="var">out</span> &lt;- <span class="id" title="var">lookUp'</span> <span class="id" title="var">sym</span> <span class="id" title="var">state</span> <span class="id" title="var">None</span> <span class="id" title="var">transitions</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_transition_branch1</span>; &lt;== <span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">st</span>::<span class="id" title="var">_</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒ <span class="id" title="var">out</span> &lt;- <span class="id" title="var">lookUp'</span> <span class="id" title="var">sym</span> <span class="id" title="var">state</span> (<span class="id" title="var">Some</span> <span class="id" title="var">st</span>) <span class="id" title="var">transitions</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_transition_branch2</span>; &lt;== <span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">stack</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">config</span>).<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">run</span></span>: run a parser PDA and generate a forest. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">run</span> <span class="id" title="var">config</span> <span class="id" title="var">forest</span> (<span class="id" title="var">w</span>:<span class="id" title="var">String</span>) : <span class="id" title="var">option</span> <span class="id" title="var">Forest</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">w</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [] ⇒ <span class="id" title="var">Some</span> <span class="id" title="var">forest</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">sym</span>::<span class="id" title="var">w'</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">transition</span> <span class="id" title="var">sym</span> <span class="id" title="var">config</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">None</span> ⇒ <span class="id" title="var">None</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Some</span> <span class="id" title="var">state'</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">forest'</span> := <span class="id" title="var">state'</span> :: <span class="id" title="var">forest</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">config'</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">config</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">state</span>, <span class="id" title="var">stack</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">sym</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Call</span> <span class="id" title="var">s</span> ⇒ (<span class="id" title="var">state'</span>, <span class="id" title="var">state</span>::<span class="id" title="var">stack</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Plain</span> <span class="id" title="var">s</span> ⇒ (<span class="id" title="var">state'</span>, <span class="id" title="var">stack</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Ret</span> <span class="id" title="var">s</span> ⇒ (<span class="id" title="var">state'</span>, <span class="id" title="var">tl</span> <span class="id" title="var">stack</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">run</span> <span class="id" title="var">config'</span> <span class="id" title="var">forest'</span> <span class="id" title="var">w'</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">bound_cost_run</span></span>: the time cost of running a parser PDA is O(|w|)
+    
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">bound_cost_run</span>: ∃ <span class="id" title="var">k</span> <span class="id" title="var">b</span> <span class="id" title="var">b1</span>, ∀ <span class="id" title="var">w</span> <span class="id" title="var">config</span> <span class="id" title="var">forest</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">cost_run</span> <span class="id" title="var">config</span> <span class="id" title="var">forest</span> (<span class="id" title="var">w</span>:<span class="id" title="var">String</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≤ (<span class="id" title="var">k</span> × |<span class="id" title="var">transitions</span>| + <span class="id" title="var">b</span>) × |<span class="id" title="var">w</span>| + <span class="id" title="var">b1</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">run'</span></span>: the monadic verision of <span class="inlinecode"><span class="id" title="var">run</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Program Fixpoint</span> <span class="id" title="var">run'</span> <span class="id" title="var">config</span> <span class="id" title="var">forest</span> (<span class="id" title="var">w</span>:<span class="id" title="var">String</span>) <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">option</span> <span class="id" title="var">Forest</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_run</span> <span class="id" title="var">config</span> <span class="id" title="var">forest</span> <span class="id" title="var">w</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">run</span> <span class="id" title="var">config</span> <span class="id" title="var">forest</span> <span class="id" title="var">w</span> !}<br/>
+&nbsp;&nbsp;:=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">w</span> <span class="id" title="keyword">as</span> <span class="id" title="var">w''</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">w</span>=<span class="id" title="var">w''</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_run</span> <span class="id" title="var">config</span> <span class="id" title="var">forest</span> <span class="id" title="var">w</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">run</span> <span class="id" title="var">config</span> <span class="id" title="var">forest</span> <span class="id" title="var">w</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [] ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒ += <span class="id" title="var">cost_run_branch1</span>; &lt;== <span class="id" title="var">Some</span> <span class="id" title="var">forest</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">sym</span>::<span class="id" title="var">w'</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">transition'</span> <span class="id" title="var">sym</span> <span class="id" title="var">config</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out1</span> &lt;- <span class="id" title="keyword">match</span> <span class="id" title="var">out</span> <span class="id" title="keyword">as</span> <span class="id" title="var">out'</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">out</span>=<span class="id" title="var">out'</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_run_sub</span> <span class="id" title="var">config</span> <span class="id" title="var">forest</span> <span class="id" title="var">sym</span> <span class="id" title="var">w'</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">run</span> <span class="id" title="var">config</span> <span class="id" title="var">forest</span> <span class="id" title="var">w</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">None</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒ += <span class="id" title="var">cost_run_branch2</span>; &lt;== <span class="id" title="var">None</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Some</span> <span class="id" title="var">state'</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">config</span> <span class="id" title="keyword">as</span> <span class="id" title="var">config'</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">config</span>=<span class="id" title="var">config'</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_run_sub</span> <span class="id" title="var">config</span> <span class="id" title="var">forest</span> <span class="id" title="var">sym</span> <span class="id" title="var">w'</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">run</span> <span class="id" title="var">config</span> <span class="id" title="var">forest</span> <span class="id" title="var">w</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">state</span>, <span class="id" title="var">stack</span>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">sym</span> <span class="id" title="keyword">as</span> <span class="id" title="var">sym'</span> <span class="id" title="keyword">return</span> (<span class="id" title="var">sym</span>=<span class="id" title="var">sym'</span>)-&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{! <span class="id" title="var">y</span> !:! <span class="id" title="var">_</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_run_sub</span> <span class="id" title="var">config</span> <span class="id" title="var">forest</span> <span class="id" title="var">sym</span> <span class="id" title="var">w'</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">run</span> <span class="id" title="var">config</span> <span class="id" title="var">forest</span> <span class="id" title="var">w</span> !}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Call</span> <span class="id" title="var">s</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">forest'</span> &lt;- <span class="id" title="var">cons'</span> <span class="id" title="var">_</span> <span class="id" title="var">state'</span> <span class="id" title="var">forest</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">run'</span> (<span class="id" title="var">state'</span>, <span class="id" title="var">state</span>::<span class="id" title="var">stack</span>) <span class="id" title="var">forest'</span> <span class="id" title="var">w'</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_run_branch3</span>; &lt;==<span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Plain</span> <span class="id" title="var">s</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">forest'</span> &lt;- <span class="id" title="var">cons'</span> <span class="id" title="var">_</span> <span class="id" title="var">state'</span> <span class="id" title="var">forest</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">run'</span> (<span class="id" title="var">state'</span>, <span class="id" title="var">stack</span>) <span class="id" title="var">forest'</span> <span class="id" title="var">w'</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_run_branch4</span>; &lt;==<span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">Ret</span> <span class="id" title="var">s</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">hyp</span> ⇒ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">forest'</span> &lt;- <span class="id" title="var">cons'</span> <span class="id" title="var">_</span> <span class="id" title="var">state'</span> <span class="id" title="var">forest</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">run'</span> (<span class="id" title="var">state'</span>, <span class="id" title="var">tl</span> <span class="id" title="var">stack</span>) <span class="id" title="var">forest'</span> <span class="id" title="var">w'</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_run_branch5</span>; &lt;==<span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">sym</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">config</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">out</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">out1</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> (<span class="id" title="var">eq_refl</span> <span class="id" title="var">w</span>).<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">runPDA</span></span>: a wrap of <span class="inlinecode"><span class="id" title="var">run</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <span class="id" title="var">run_PDA</span> (<span class="id" title="var">w</span>:<span class="id" title="var">String</span>) :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">initConfig</span> := (<span class="id" title="var">initState</span>, []) <span class="id" title="tactic">in</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">run</span> <span class="id" title="var">initConfig</span> [] <span class="id" title="var">w</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">bound_cost_run_PDA</span></span>: the time cost of running a PDA is O(|w|). 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">bound_cost_run_PDA</span>: ∃ <span class="id" title="var">k</span> <span class="id" title="var">b</span>, ∀ <span class="id" title="var">w</span>, <span class="id" title="var">cost_run_PDA</span> <span class="id" title="var">w</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;≤ <span class="id" title="var">k</span> × |<span class="id" title="var">w</span>| + <span class="id" title="var">b</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">runPDA'</span></span>: the monadic version of <span class="inlinecode"><span class="id" title="var">runPDA</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Program Definition</span> <span class="id" title="var">runPDA'</span> (<span class="id" title="var">w</span>:<span class="id" title="var">String</span>) <br/>
+&nbsp;&nbsp;:{! <span class="id" title="var">y</span> !:! <span class="id" title="var">option</span> <span class="id" title="var">Forest</span> !&lt;! <span class="id" title="var">c</span> !&gt;! <span class="id" title="var">c</span> = <span class="id" title="var">cost_run_PDA</span> <span class="id" title="var">w</span> ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">y</span> = <span class="id" title="var">run_PDA</span> <span class="id" title="var">w</span> !}<br/>
+&nbsp;&nbsp;:=     <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">initConfig</span> &lt;- <span class="id" title="var">pair'</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <span class="id" title="var">initState</span> [];<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span> &lt;- <span class="id" title="var">run'</span> <span class="id" title="var">initConfig</span> [] <span class="id" title="var">w</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+= <span class="id" title="var">cost_run_PDA_branch1</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;== <span class="id" title="var">out</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">PDA</span>.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

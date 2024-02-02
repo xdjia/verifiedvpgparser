@@ -1,0 +1,18 @@
+(env
+ (dev
+  (flags
+   (:standard
+    -w
+    -unused-var-strict
+    -w
+    -unused-value-declaration
+    -w
+    -unused-var)))
+ (release
+  (ocamlopt_flags :standard -O3 -noassert -w -A)))
+
+(executable
+ (package Test)
+ (name test)
+ (public_name test)
+ (libraries TCFGParser CoqParser))

@@ -1,0 +1,288 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>ExtractionW</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library ExtractionW</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+This file provides the end-to-end extraction function <span class="inlinecode"><span class="id" title="var">extract</span></span> and
+    verifies that, during extraction, <span class="inlinecode"><span class="id" title="var">extract</span></span> maintains a list <span class="inlinecode"><span class="id" title="var">V</span></span>
+    that contains no duplicates, and the size of <span class="inlinecode"><span class="id" title="var">V</span></span> does not decrease
+    at each step, where <span class="inlinecode"><span class="id" title="var">V</span></span> is a list of extracted partial parse tree.
+  
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Lists.List</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">ListNotations</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Extraction</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Arith</span> <span class="id" title="var">String</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Structures.Orders</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Ltac</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">MSets</span> <span class="id" title="var">MSets.MSetProperties</span> <br/>
+&nbsp;&nbsp;<span class="id" title="var">MSets.MSetEqProperties</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">Coq</span> <span class="id" title="keyword">Require</span> <span class="id" title="var">Structures.OrderedTypeEx</span> <span class="id" title="var">Structures.OrdersFacts</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Classes.RelationClasses</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Program.Equality</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Init.Wf</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Lia</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Misc</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ForwardSmallStep</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">BackwardSmallStep</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Unicode.Utf8_core</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Def</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Def.DEF</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Misc</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.Basic</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.vpg</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Arith.PeanoNat</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.Basic</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Misc.vpg</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Program</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Monad</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Lia</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Transducer</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">PreTimed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The module <span class="inlinecode"><span class="id" title="var">ExtractionWNoDup</span></span> provides the extraction function that
+    maintains a list of partial parse trees during the extraction. The
+    list is verified to have no duplicates, therefore can be viewed as a set. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Module</span> <span class="id" title="var">ExtractionWNoDup</span> (<span class="id" title="var">G</span>:<span class="id" title="var">VPG</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Module</span> <span class="id" title="var">Transducer</span> := <span class="id" title="var">Transducer</span>(<span class="id" title="var">G</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Transducer</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">TimedSets.Parser</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">PreTimed.Dbx.BackwardSmallStep.ForwardSmallStep</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Def</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Tac.Tacs</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">TimedSets.Parser</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">extraction</span></span>: the extraction function working on the whole pares
+      forest; extended from the one-step extraction functin <span class="inlinecode"><span class="id" title="var">f_b</span></span>.
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">extraction</span> <span class="id" title="var">M</span> <span class="id" title="var">V</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">M</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| [] ⇒ <span class="id" title="var">V</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">m</span>::<span class="id" title="var">M'</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">M'</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| [] ⇒ <span class="id" title="var">V</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">V'</span> := <span class="id" title="var">Transducer2.f_b</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">out</span> := <span class="id" title="var">extraction</span> <span class="id" title="var">M'</span> <span class="id" title="var">V'</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">out</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">extraction_and_its_one_step</span></span>: the relation between
+      <span class="inlinecode"><span class="id" title="var">extraction</span></span> and <span class="inlinecode"><span class="id" title="var">f_b</span></span>.
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">extraction_and_its_one_step</span>: <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">x</span> <span class="id" title="var">M</span> <span class="id" title="var">V</span> <span class="id" title="var">m</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Transducer2.f_b</span> <span class="id" title="var">x</span> (<span class="id" title="var">extraction</span> (<span class="id" title="var">M</span> ++ [<span class="id" title="var">x</span>]) <span class="id" title="var">V</span>) =<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">extraction</span> ((<span class="id" title="var">M</span> ++ [<span class="id" title="var">x</span>]) ++ [<span class="id" title="var">m</span>]) <span class="id" title="var">V</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_forest_length</span></span>: the length of the forest is the length of the
+      string plus one. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_forest_length</span>: ∀ <span class="id" title="var">M</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span>, <span class="id" title="var">Forest</span> <span class="id" title="var">M</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> → |<span class="id" title="var">M</span>| = |<span class="id" title="var">w</span>| + 1.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_extract_extract</span></span>: the partial parse trees and the forest during
+      the extraction satisfy the relation <span class="inlinecode"><span class="id" title="keyword">Extract</span></span>. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_extract_extract</span>: ∀ <span class="id" title="var">m</span> <span class="id" title="var">M</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> <span class="id" title="var">i</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Forest</span> (<span class="id" title="var">m</span>::<span class="id" title="var">M</span>) <span class="id" title="var">T</span> (<span class="id" title="var">w</span>++[<span class="id" title="var">i</span>]) → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">M1</span> <span class="id" title="var">m'</span> <span class="id" title="var">M2</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">M</span> = ((<span class="id" title="var">M1</span>++[<span class="id" title="var">m'</span>])++<span class="id" title="var">M2</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∃ <span class="id" title="var">w1</span> <span class="id" title="var">w2</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Transducer2.Extract</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">m'</span>::<span class="id" title="var">M2</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">extraction</span> (<span class="id" title="var">app</span> <span class="id" title="var">M1</span> [<span class="id" title="var">m'</span>]) (<span class="id" title="var">Transducer2.f_init</span> <span class="id" title="var">m</span>)) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">w1</span> <span class="id" title="var">w2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∧ <span class="id" title="var">w1</span>++<span class="id" title="var">w2</span>=<span class="id" title="var">w</span>++[<span class="id" title="var">i</span>] <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∧ |<span class="id" title="var">M2</span>| = |<span class="id" title="var">w1</span>|.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">no_dup_init</span></span>: the initial list of partial parse trees generated
+      by <span class="inlinecode"><span class="id" title="var">f_init</span></span> has no duplicates. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">no_dup_init</span>:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">m</span> <span class="id" title="var">M</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> <span class="id" title="var">i</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Forest</span> (<span class="id" title="var">m</span>::<span class="id" title="var">M</span>) <span class="id" title="var">T</span> (<span class="id" title="var">w</span>++[<span class="id" title="var">i</span>]) → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">NoDup</span> (<span class="id" title="var">Transducer2.f_init</span> <span class="id" title="var">m</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">f_init_same_t</span></span>: in the initial list of partial parse trees
+      generated by <span class="inlinecode"><span class="id" title="var">f_init</span></span>, each rule has a unique stack. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">f_init_same_t</span>:  <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">m</span> <span class="id" title="var">e</span> <span class="id" title="var">t1</span> <span class="id" title="var">t2</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">In</span> (<span class="id" title="var">e</span>,<span class="id" title="var">t1</span>) (<span class="id" title="var">Transducer2.f_init</span> <span class="id" title="var">m</span>) → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">In</span> (<span class="id" title="var">e</span>,<span class="id" title="var">t2</span>) (<span class="id" title="var">Transducer2.f_init</span> <span class="id" title="var">m</span>) → <span class="id" title="var">t1</span>=<span class="id" title="var">t2</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_f_b_nodup_nodup_sub_tlt</span>,</span> <span class="inlinecode"><span class="id" title="var">L_f_b_nodup_nodup_sub_t</span>,</span>
+      <span class="inlinecode"><span class="id" title="var">L_f_b_nodup_nodup_sub_et</span></span>: these three lemmas show that when the
+      list of parse trees contain no duplicates, extending the parse
+      trees does not introduce duplicates. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_f_b_nodup_nodup_sub_tlt</span>: <br/>
+&nbsp;&nbsp;∀ {<span class="id" title="var">A</span>} <span class="id" title="var">l</span> (<span class="id" title="var">t</span>:<span class="id" title="var">A</span>) <span class="id" title="var">m</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">NoDup</span> <span class="id" title="var">m</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">NoDup</span> (<span class="id" title="var">map</span> (<span class="id" title="var">λ</span> <span class="id" title="var">e</span> : <span class="id" title="var">CalEdge</span>, (<span class="id" title="var">Calv</span> <span class="id" title="var">e</span> :: <span class="id" title="var">l</span>, <span class="id" title="var">t</span>)) <span class="id" title="var">m</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_f_b_nodup_nodup_sub_t</span>: <br/>
+&nbsp;&nbsp;∀ {<span class="id" title="var">A</span>} <span class="id" title="var">l</span> (<span class="id" title="var">t</span>:<span class="id" title="var">A</span>) <span class="id" title="var">m</span>, <span class="id" title="var">NoDup</span> <span class="id" title="var">m</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">NoDup</span> (<span class="id" title="var">map</span> (<span class="id" title="var">λ</span> <span class="id" title="var">e</span> : <span class="id" title="var">PlnEdge</span>, (<span class="id" title="var">Plnv</span> <span class="id" title="var">e</span> :: <span class="id" title="var">l</span>, <span class="id" title="var">t</span>)) <span class="id" title="var">m</span>).<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_f_b_nodup_nodup_sub_et</span>: <br/>
+&nbsp;&nbsp;∀ <span class="id" title="var">l</span> <span class="id" title="var">t</span> <span class="id" title="var">m</span>, <span class="id" title="var">NoDup</span> <span class="id" title="var">m</span> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">NoDup</span> (<span class="id" title="var">map</span> (<span class="id" title="var">λ</span> <span class="id" title="var">e</span> : <span class="id" title="var">RetEdge</span>, (<span class="id" title="var">Retv</span> <span class="id" title="var">e</span> :: <span class="id" title="var">l</span>, <span class="id" title="var">e</span>::<span class="id" title="var">t</span>)) <span class="id" title="var">m</span>).<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">L_f_b_nodup_nodup</span></span>: if the list <span class="inlinecode"><span class="id" title="var">V</span></span> of partial parse trees
+      contains no duplicates, then <span class="inlinecode"><span class="id" title="var">V'</span>=<span class="id" title="var">f_b</span></span> <span class="inlinecode"><span class="id" title="var">m</span></span> <span class="inlinecode"><span class="id" title="var">V</span></span> also contains no
+      duplicates. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_f_b_nodup_nodup</span>: ∀ <span class="id" title="var">m</span> <span class="id" title="var">V</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(∀ <span class="id" title="var">v</span> <span class="id" title="var">t1</span> <span class="id" title="var">t2</span>, <span class="id" title="var">In</span> (<span class="id" title="var">v</span>,<span class="id" title="var">t1</span>) <span class="id" title="var">V</span> → <span class="id" title="var">In</span> (<span class="id" title="var">v</span>,<span class="id" title="var">t2</span>) <span class="id" title="var">V</span> → <span class="id" title="var">t1</span>=<span class="id" title="var">t2</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">NoDup</span> <span class="id" title="var">V</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">NoDup</span> (<span class="id" title="var">f_b</span> <span class="id" title="var">m</span> <span class="id" title="var">V</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">extraction_nodup_nodup</span></span>: during the extraction, the list <span class="inlinecode"><span class="id" title="var">V</span></span> of
+      partial parse trees contains no duplicates. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">extraction_nodup_nodup</span>:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">m</span> <span class="id" title="var">M</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> <span class="id" title="var">i</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Forest</span> (<span class="id" title="var">m</span>::<span class="id" title="var">M</span>) <span class="id" title="var">T</span> (<span class="id" title="var">w</span>++[<span class="id" title="var">i</span>]) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">M1</span> <span class="id" title="var">m'</span> <span class="id" title="var">M2</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">M</span> = ((<span class="id" title="var">M1</span>++[<span class="id" title="var">m'</span>])++<span class="id" title="var">M2</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">NoDup</span> (<span class="id" title="var">extraction</span> <span class="id" title="var">M1</span> (<span class="id" title="var">f_init</span> <span class="id" title="var">m</span>)) ∧ <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">e</span> <span class="id" title="var">t1</span> <span class="id" title="var">t2</span>, <span class="id" title="var">In</span> (<span class="id" title="var">e</span>,<span class="id" title="var">t1</span>) (<span class="id" title="var">extraction</span> <span class="id" title="var">M1</span> (<span class="id" title="var">f_init</span> <span class="id" title="var">m</span>)) → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">In</span> (<span class="id" title="var">e</span>,<span class="id" title="var">t2</span>) (<span class="id" title="var">extraction</span> <span class="id" title="var">M1</span> (<span class="id" title="var">f_init</span> <span class="id" title="var">m</span>)) → <span class="id" title="var">t1</span>=<span class="id" title="var">t2</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">bound_extraction</span></span>: during extraction, the length of <span class="inlinecode"><span class="id" title="var">V</span></span> does not
+      decrease, where <span class="inlinecode"><span class="id" title="var">V</span></span> is the set of partial parse trees. 
+</div>
+<div class="code">
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <span class="id" title="var">bound_extraction</span>: <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">m</span> <span class="id" title="var">M</span> <span class="id" title="var">T</span> <span class="id" title="var">w</span> <span class="id" title="var">i</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">Forest</span> (<span class="id" title="var">m</span>::<span class="id" title="var">M</span>) <span class="id" title="var">T</span> (<span class="id" title="var">w</span>++[<span class="id" title="var">i</span>]) → <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;∀ <span class="id" title="var">M1</span> <span class="id" title="var">m'</span> <span class="id" title="var">M2</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">M</span> = ((<span class="id" title="var">M1</span>++[<span class="id" title="var">m'</span>])++<span class="id" title="var">M2</span>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">extraction</span> <span class="id" title="var">M1</span> (<span class="id" title="var">f_init</span> <span class="id" title="var">m</span>)| ≤ |<span class="id" title="var">extraction</span> (<span class="id" title="var">M1</span>++[<span class="id" title="var">m'</span>]) (<span class="id" title="var">f_init</span> <span class="id" title="var">m</span>)|.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">ExtractionWNoDup</span>.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>
