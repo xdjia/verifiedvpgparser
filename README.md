@@ -99,8 +99,8 @@ the final set of parse trees $V_w$. The theorem includes three properties, discu
    has no duplicates, therefore can be viewed as a set.
 2. The function $\text{extraction}$ has a monadic counterpart
    $\text{extraction}'$, which is verified to have the time complexity
-   $\text{cost\_extraction}$. The second property
-   shows $\text{cost\_extraction}=O(|V_w||w|)$, i.e., $O(|w|)$ times the number of all valid parse trees. When
+   `cost_extraction`. The second property
+   shows `cost_extraction}=O(|V_w||w|)`, i.e., $O(|w|)$ times the number of all valid parse trees. When
    $|V_w|\leq 1$, which is always the case for unambiguous grammars, it
    shows that the extraction function is linear-time.
 3. The last property shows the correctness: a VPG parse tree $v$ is in
