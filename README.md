@@ -182,7 +182,4 @@ The benchmarks are located in `Benchmark/`.
 
 ## References
 
-[1] Xiaodong Jia, Ashish Kumar, and Gang Tan. 2021. A derivative-based
-parser generator for visibly Pushdown grammars. Proc. ACM Program. Lang.
-5, OOPSLA, Article 151 (October 2021), 24 pages.
-https://doi.org/10.1145/3485528
+[1] TOPLAS '23. Xiaodong Jia, Ashish Kumar, and Gang Tan. *A Derivative-Based Parser Generator for Visibly Pushdown Grammars*. [PDF](https://dl.acm.org/doi/pdf/10.1145/3591472)
